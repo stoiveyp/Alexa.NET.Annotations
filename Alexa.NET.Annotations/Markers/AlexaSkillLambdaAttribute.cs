@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Alexa.NET.Annotations
+namespace Alexa.NET.Annotations.Markers
 {
-    public class AlexaSkillLambdaAttribute:Attribute
+    public class AlexaSkillLambdaAttribute : Attribute
     {
     }
 }
