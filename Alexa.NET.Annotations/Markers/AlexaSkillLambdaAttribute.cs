@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Alexa.NET.Annotations.Markers
 {
-    public class AlexaSkillLambdaAttribute : Attribute
+    public class AlexaSkillAttribute : Attribute
     {
     }
 }

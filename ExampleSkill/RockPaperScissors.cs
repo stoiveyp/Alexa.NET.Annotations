@@ -6,8 +6,8 @@ using Amazon.Lambda.Core;
 
 namespace ExampleSkill
 {
-    [AlexaSkillLambda]
-    public class RockPaperScissors
+    [AlexaSkill]
+    public partial class RockPaperScissors
     {
         [Launch]
         public  SkillResponse Launch(LaunchRequest intent, ILambdaContext _)
