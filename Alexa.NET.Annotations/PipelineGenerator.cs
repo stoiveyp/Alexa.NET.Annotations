@@ -13,7 +13,7 @@ namespace Alexa.NET.Annotations
             IncrementalValuesProvider<ClassDeclarationSyntax?> candidateMarkers = context.SyntaxProvider.CreateSyntaxProvider(
                 PipelineMarker.AttributePredicate,
                 PipelineMarker.SkillClasses).Where(c => c != null);
-            var combined = context.CompilationProvider.Combine(candidateMarkers.Collect());
+            var combined = candidateMarkers.Collect();
             context.RegisterSourceOutput(combined, PipelineBuilder.Execute);
             context.RegisterPostInitializationOutput(PipelineMarker.StaticCodeGeneration);
         }

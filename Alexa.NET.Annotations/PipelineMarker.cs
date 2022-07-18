@@ -23,12 +23,12 @@ namespace Alexa.NET.Annotations
 
         public static ClassDeclarationSyntax? SkillClasses(GeneratorSyntaxContext context, CancellationToken _)
         {
-            if (!(context.Node is AttributeSyntax att))
+            if (context.Node is not AttributeSyntax att)
             {
                 return null;
             }
 
-            if (!(att.Parent is AttributeListSyntax list))
+            if (att.Parent is not AttributeListSyntax list)
             {
                 return null;
             }

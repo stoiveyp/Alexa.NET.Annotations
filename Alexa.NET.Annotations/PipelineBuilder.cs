@@ -9,14 +9,14 @@ namespace Alexa.NET.Annotations
 {
     internal class PipelineBuilder
     {
-        public static void Execute(SourceProductionContext context, (Compilation Compilation, ImmutableArray<ClassDeclarationSyntax?> Syntax) args)
+        public static void Execute(SourceProductionContext context, ImmutableArray<ClassDeclarationSyntax?> args)
         {
-            if (!args.Syntax.Any())
+            if (!args.Any())
             {
                 return;
             }
 
-            foreach (var cls in args.Syntax)
+            foreach (var cls in args)
             {
                 var hint = $"{cls.Identifier.Text}.g.cs";
                 var pipelineCode = BuildPipelineSource(cls);
@@ -35,16 +35,18 @@ namespace Alexa.NET.Annotations
 
         private static CompilationUnitSyntax GenerateCodeUnit(ClassDeclarationSyntax cls)
         {
-            var usings = SyntaxFactory.List(new UsingDirectiveSyntax[]
+            var usings = SyntaxFactory.List(new []
             {
-
+                SyntaxFactory.UsingDirective(SyntaxFactory.QualifiedName(SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("Alexa"),SyntaxFactory.IdentifierName("NET")),SyntaxFactory.IdentifierName("RequestHandlers"))),
+                SyntaxFactory.UsingDirective(SyntaxFactory.QualifiedName(SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"),SyntaxFactory.IdentifierName("Threading")),SyntaxFactory.IdentifierName("Tasks"))),
+                SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System")),
             }.Concat(cls.Ancestors().OfType<CompilationUnitSyntax>().Single().Usings).Distinct());
 
             var initialSetup = SyntaxFactory.CompilationUnit().WithUsings(usings);
 
             var nsUsage = cls.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
 
-            var newClass = SyntaxFactory.ClassDeclaration(cls.Identifier.Text)
+            var skillClass = SyntaxFactory.ClassDeclaration(cls.Identifier.Text)
                 .WithModifiers(SyntaxFactory.TokenList(
                     SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                     SyntaxFactory.Token(SyntaxKind.PartialKeyword)));
@@ -52,10 +54,10 @@ namespace Alexa.NET.Annotations
             //Debugger.Launch();
             if (nsUsage != null)
             {
-                return initialSetup.AddMembers(SyntaxFactory.NamespaceDeclaration(nsUsage.Name).AddMembers(newClass));
+                return initialSetup.AddMembers(SyntaxFactory.NamespaceDeclaration(nsUsage.Name).AddMembers(skillClass.BuildSkill(cls)));
             }
 
-            return initialSetup.AddMembers(newClass);
+            return initialSetup.AddMembers(skillClass.BuildSkill(cls));
         }
     }
 }
