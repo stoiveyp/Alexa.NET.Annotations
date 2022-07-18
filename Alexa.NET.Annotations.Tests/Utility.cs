@@ -12,15 +12,7 @@ namespace Alexa.NET.Annotations.Tests
         {
             var tree = CSharpSyntaxTree.ParseText(sampleCode);
 
-            IEnumerable<PortableExecutableReference> references = new[]
-            {
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(AlexaSkillAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(SkillResponse).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(ILambdaContext).Assembly.Location),
-            };
-
-            var compilation = CSharpCompilation.Create("Tests", new [] { tree }, references:references);
+            var compilation = CSharpCompilation.Create("Tests", new [] { tree });
 
             var generator = new PipelineGenerator();
             GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
