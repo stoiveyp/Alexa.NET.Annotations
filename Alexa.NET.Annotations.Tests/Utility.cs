@@ -1,7 +1,4 @@
-﻿using Alexa.NET.Annotations.Markers;
-using Alexa.NET.Response;
-using Amazon.Lambda.Core;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Alexa.NET.Annotations.Tests

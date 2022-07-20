@@ -5,7 +5,6 @@ using System;
 using Alexa.NET;
 using Alexa.NET.Annotations.Markers;
 using Alexa.NET.Request.Type;
-using Alexa.NET.RequestHandlers.Handlers;
 using Alexa.NET.Response;
 using Amazon.Lambda.Core;
 
@@ -25,11 +24,5 @@ public partial class Example
 
     private class LaunchHandler
     {
-        private Example Wrapper { get; }
-
-        public LaunchHandler(Example wrapper)
-        {
-            Wrapper = wrapper;
-        }
     }
 }
