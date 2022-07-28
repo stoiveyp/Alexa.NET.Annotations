@@ -1,5 +1,6 @@
 ﻿//HintName: Example.g.cs
 using Alexa.NET.RequestHandlers;
+using Alexa.NET.RequestHandlers.Handlers;
 using System.Threading.Tasks;
 using System;
 using Alexa.NET;
@@ -24,5 +25,11 @@ public partial class Example
 
     private class LaunchHandler
     {
+        private Example Wrapper { get; }
+
+        private LaunchHandler(Example wrapper)
+        {
+            Wrapper = wrapper;
+        }
     }
 }

@@ -42,6 +42,7 @@ namespace Alexa.NET.Annotations
             var usings = SF.List(new []
             {
                 SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("Alexa"),SF.IdentifierName("NET")),SF.IdentifierName("RequestHandlers"))),
+                SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("Alexa"),SF.IdentifierName("NET")),SF.IdentifierName("RequestHandlers")),SF.IdentifierName("Handlers"))),
                 SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("System"),SF.IdentifierName("Threading")),SF.IdentifierName("Tasks"))),
                 SF.UsingDirective(SF.IdentifierName("System")),
             }.Concat(cls.Ancestors().OfType<CompilationUnitSyntax>().Single().Usings).Distinct());
@@ -119,7 +120,9 @@ namespace Alexa.NET.Annotations
             return SF.ClassDeclaration(method.Identifier.Text + "Handler")
                 .WithModifiers(SF.TokenList(
                     SF.Token(SyntaxKind.PrivateKeyword)))
-                .AddWrapperConstructor(method, containerClass);
+                .AddWrapperField(containerClass)
+                .AddWrapperConstructor(containerClass)
+                .AddExecuteMethod(method);
         }
 
         
