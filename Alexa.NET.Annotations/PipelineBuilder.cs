@@ -1,5 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
+using Alexa.NET.Request.Type;
+using Alexa.NET.RequestHandlers.Handlers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -41,6 +43,7 @@ namespace Alexa.NET.Annotations
         {
             var usings = SF.List(new []
             {
+                SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("Alexa"),SF.IdentifierName("NET")),SF.IdentifierName("Request"))),
                 SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("Alexa"),SF.IdentifierName("NET")),SF.IdentifierName("RequestHandlers"))),
                 SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("Alexa"),SF.IdentifierName("NET")),SF.IdentifierName("RequestHandlers")),SF.IdentifierName("Handlers"))),
                 SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("System"),SF.IdentifierName("Threading")),SF.IdentifierName("Tasks"))),
@@ -68,7 +71,7 @@ namespace Alexa.NET.Annotations
         public static ClassDeclarationSyntax BuildSkill(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax cls)
         {
             var handlers = cls.Members.OfType<MethodDeclarationSyntax>()
-                .Where(HasMarkerAttribute).Select(m => MethodToPipelineClass(m, cls));
+                .Where(HasMarkerAttribute).Select(m => MethodToPipelineClass(m, MarkerAttribute(m), cls));
 
             return skillClass
                 .AddPipelineField()
@@ -108,24 +111,31 @@ namespace Alexa.NET.Annotations
         public static ClassDeclarationSyntax AddExecuteMethod(this ClassDeclarationSyntax skillClass)
         {
             var executeMethod = SF.MethodDeclaration(
-                SF.GenericName(SF.Identifier("Task"), SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName("SkillResponse")))), "Execute")
+                SF.GenericName(SF.Identifier(nameof(Task)), SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName("SkillResponse")))), "Execute")
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword)))
                 .AddBodyStatements(NotImplemented());
 
             return skillClass.AddMembers(executeMethod);
         }
 
-        private static ClassDeclarationSyntax MethodToPipelineClass(MethodDeclarationSyntax method, ClassDeclarationSyntax containerClass)
+        private static ClassDeclarationSyntax MethodToPipelineClass(MethodDeclarationSyntax method, string marker, ClassDeclarationSyntax containerClass)
         {
+            if (marker == null) throw new ArgumentNullException(nameof(marker));
+            var info = MarkerTypeInfo[marker];
             return SF.ClassDeclaration(method.Identifier.Text + "Handler")
+                .WithBaseList(SF.BaseList(SF.SingletonSeparatedList(info.BaseType)))
                 .WithModifiers(SF.TokenList(
                     SF.Token(SyntaxKind.PrivateKeyword)))
                 .AddWrapperField(containerClass)
                 .AddWrapperConstructor(containerClass)
-                .AddExecuteMethod(method);
+                .AddExecuteMethod(method,info);
         }
 
-        
+        public static Dictionary<string, MarkerInfo> MarkerTypeInfo = new()
+        {
+            { "Launch", new(nameof(LaunchRequestHandler), nameof(LaunchRequest)) }
+        };
+
 
         private static string? MarkerAttribute(MethodDeclarationSyntax method)
         {
@@ -139,7 +149,20 @@ namespace Alexa.NET.Annotations
         }
 
         private static ThrowStatementSyntax NotImplemented() => SF.ThrowStatement(
-            SF.ObjectCreationExpression(SF.IdentifierName("NotImplementedException"),
+            SF.ObjectCreationExpression(SF.IdentifierName(nameof(NotImplementedException)),
                 SF.ArgumentList(), null));
+    }
+
+    public class MarkerInfo
+    {
+        public MarkerInfo(string baseClassName, string requestType)
+        {
+            BaseType = SF.SimpleBaseType(SF.IdentifierName(baseClassName));
+            RequestType = SF.IdentifierName(requestType);
+        }
+
+        public BaseTypeSyntax BaseType { get; }
+        public IdentifierNameSyntax RequestType { get; }
+
     }
 }

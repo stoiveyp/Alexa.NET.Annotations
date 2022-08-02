@@ -10,7 +10,7 @@ namespace ExampleSkill
     public partial class RockPaperScissors
     {
         [Launch]
-        public SkillResponse Launch(LaunchRequest intent, ILambdaContext _)
+        public SkillResponse Launch(LaunchRequest intent)
         {
             return ResponseBuilder.Ask("What's your move? Rock, Paper or scissors?", new("What's your move?"));
         }

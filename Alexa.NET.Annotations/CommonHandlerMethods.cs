@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using System.Linq.Expressions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -7,6 +9,7 @@ namespace Alexa.NET.Annotations
     internal static class CommonHandlerMethods
     {
         private const string WrapperPropertyName = "Wrapper";
+        private const string HandlerMethodName = "Handle";
 
         public static ClassDeclarationSyntax AddWrapperConstructor(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax wrapperClass)
         {
@@ -14,7 +17,7 @@ namespace Alexa.NET.Annotations
                 .WithType(SF.IdentifierName(wrapperClass.Identifier.Text));
 
             var constructor = SF.ConstructorDeclaration(skillClass.Identifier.Text)
-                .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PrivateKeyword)))
+                .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.InternalKeyword)))
                 .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(handlerParameter)))
                 .WithBody(SF.Block(SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,SF.IdentifierName(WrapperPropertyName),SF.IdentifierName("wrapper")))));
             return skillClass.AddMembers(constructor);
@@ -30,10 +33,46 @@ namespace Alexa.NET.Annotations
             return skillClass.AddMembers(handlerField);
         }
 
-        public static ClassDeclarationSyntax AddExecuteMethod(this ClassDeclarationSyntax skillClass, MethodDeclarationSyntax method)
+        public static ClassDeclarationSyntax AddExecuteMethod(this ClassDeclarationSyntax skillClass, MethodDeclarationSyntax method, MarkerInfo info)
         {
-            return skillClass;
+            var newMethod = SF.MethodDeclaration(SF.GenericName("Task").WithTypeArgumentList(
+                    SF.TypeArgumentList(SF.SingletonSeparatedList(method.ReturnType))), HandlerMethodName)
+                .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.OverrideKeyword)))
+                .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(
+                    SF.Parameter(SF.Identifier("information")).WithType(
+                        SF.GenericName(SF.Identifier("AlexaRequestInformation"),
+                            SF.TypeArgumentList(SF.SingletonSeparatedList(SF.ParseTypeName("SkillRequest")))))
+                )))
+                .WithExpressionBody(SF.ArrowExpressionClause(WrapInTask(method,RunWrapper(method, info)))).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
+            return skillClass.AddMembers(newMethod);
         }
 
+        private static InvocationExpressionSyntax WrapInTask(MethodDeclarationSyntax method, InvocationExpressionSyntax expression)
+        {
+            if (method.ReturnType is GenericNameSyntax gen && gen.Identifier.Text == "Task")
+            {
+                return expression;
+            }
+
+            return SF.InvocationExpression(
+                SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    SF.IdentifierName("Task"),
+                    SF.IdentifierName("FromResult"))).WithArgumentList(
+                SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(expression))));
+        }
+
+        private static InvocationExpressionSyntax RunWrapper(MethodDeclarationSyntax method, MarkerInfo info)
+        {
+            return SF.InvocationExpression(
+                SF.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SF.IdentifierName(WrapperPropertyName),
+                    SF.IdentifierName(method.Identifier.Text)),
+                SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.CastExpression(info.RequestType,
+                    SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,SF.IdentifierName("information"),SF.IdentifierName("SkillRequest")),
+                        SF.IdentifierName("Request")
+                        ))))));
+        }
     }
 }

@@ -1,9 +1,9 @@
 ﻿//HintName: Example.g.cs
+using Alexa.NET.Request;
 using Alexa.NET.RequestHandlers;
 using Alexa.NET.RequestHandlers.Handlers;
 using System.Threading.Tasks;
 using System;
-using System.Runtime.InteropServices;
 using Alexa.NET;
 using Alexa.NET.Annotations.Markers;
 using Alexa.NET.Request.Type;
@@ -24,18 +24,15 @@ public partial class Example
         return _pipeline;
     }
 
-    private class LaunchHandler
+    private class LaunchHandler : LaunchRequestHandler
     {
         private Example Wrapper { get; }
 
-        private LaunchHandler(Example wrapper)
+        internal LaunchHandler(Example wrapper)
         {
             Wrapper = wrapper;
         }
 
-        private Task<SkillResponse> Execute()
-        {
-            return Wrapper.Launch();
-        }
+        public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information) => Task.FromResult(Wrapper.Launch((LaunchRequest)information.SkillRequest.Request));
     }
 }
