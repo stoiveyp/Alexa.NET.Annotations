@@ -14,5 +14,11 @@ namespace ExampleSkill
         {
             return ResponseBuilder.Ask("What's your move? Rock, Paper or scissors?", new("What's your move?"));
         }
+
+        [Intent("MakeMyMove")]
+        public async Task<SkillResponse> PlayAGame(IntentRequest intentRequest)
+        {
+            return ResponseBuilder.Tell("You Win", null);
+        }
     }
 }

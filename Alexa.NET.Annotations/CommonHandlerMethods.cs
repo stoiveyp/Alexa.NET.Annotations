@@ -11,7 +11,7 @@ namespace Alexa.NET.Annotations
         private const string WrapperPropertyName = "Wrapper";
         private const string HandlerMethodName = "Handle";
 
-        public static ClassDeclarationSyntax AddWrapperConstructor(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax wrapperClass)
+        public static ClassDeclarationSyntax AddWrapperConstructor(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax wrapperClass, ConstructorInitializerSyntax? initializer)
         {
             var handlerParameter = SF.Parameter(SF.Identifier("wrapper"))
                 .WithType(SF.IdentifierName(wrapperClass.Identifier.Text));
@@ -19,7 +19,14 @@ namespace Alexa.NET.Annotations
             var constructor = SF.ConstructorDeclaration(skillClass.Identifier.Text)
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.InternalKeyword)))
                 .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(handlerParameter)))
-                .WithBody(SF.Block(SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,SF.IdentifierName(WrapperPropertyName),SF.IdentifierName("wrapper")))));
+                .WithBody(SF.Block(SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                    SF.IdentifierName(WrapperPropertyName), SF.IdentifierName("wrapper")))));
+
+            if (initializer != null)
+            {
+                constructor = constructor.WithInitializer(initializer);
+            }
+
             return skillClass.AddMembers(constructor);
         }
 
@@ -35,8 +42,12 @@ namespace Alexa.NET.Annotations
 
         public static ClassDeclarationSyntax AddExecuteMethod(this ClassDeclarationSyntax skillClass, MethodDeclarationSyntax method, MarkerInfo info)
         {
-            var newMethod = SF.MethodDeclaration(SF.GenericName("Task").WithTypeArgumentList(
-                    SF.TypeArgumentList(SF.SingletonSeparatedList(method.ReturnType))), HandlerMethodName)
+            var returnType = method.ReturnsTask()
+                ? method.ReturnType
+                : SF.GenericName("Task").WithTypeArgumentList(
+                    SF.TypeArgumentList(SF.SingletonSeparatedList(method.ReturnType)));
+
+            var newMethod = SF.MethodDeclaration(returnType, HandlerMethodName)
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.OverrideKeyword)))
                 .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(
                     SF.Parameter(SF.Identifier("information")).WithType(
@@ -47,9 +58,12 @@ namespace Alexa.NET.Annotations
             return skillClass.AddMembers(newMethod);
         }
 
+        private static bool ReturnsTask(this MethodDeclarationSyntax method) =>
+            method.ReturnType is GenericNameSyntax gen && gen.Identifier.Text == "Task";
+
         private static InvocationExpressionSyntax WrapInTask(MethodDeclarationSyntax method, InvocationExpressionSyntax expression)
         {
-            if (method.ReturnType is GenericNameSyntax gen && gen.Identifier.Text == "Task")
+            if (method.ReturnsTask())
             {
                 return expression;
             }
