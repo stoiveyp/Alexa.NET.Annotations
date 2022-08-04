@@ -20,5 +20,8 @@ namespace ExampleSkill
         {
             return ResponseBuilder.Tell("You Win", null);
         }
+
+        [Intent(BuiltInIntent.Help)]
+        public SkillResponse Help(IntentRequest _) => ResponseBuilder.Empty();
     }
 }

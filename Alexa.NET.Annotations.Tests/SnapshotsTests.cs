@@ -18,4 +18,11 @@ public class SnapshotTests
         var sampleCode = System.IO.File.ReadAllText("Examples/IntentExample.cs");
         return Utility.Verify(sampleCode);
     }
+
+    [Fact]
+    public Task Combined()
+    {
+        var sampleCode = System.IO.File.ReadAllText("Examples/Combined.cs");
+        return Utility.Verify(sampleCode);
+    }
 }
