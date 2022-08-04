@@ -20,7 +20,7 @@ public partial class Example
 
     AlexaRequestPipeline Initialize()
     {
-        _pipeline = new AlexaRequestPipeline(new[]{new LaunchHandler(this)});
+        _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{new LaunchHandler(this)});
         return _pipeline;
     }
 
