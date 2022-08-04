@@ -9,6 +9,7 @@ using Alexa.NET.Annotations.Markers;
 using Alexa.NET.Request.Type;
 using Alexa.NET.Response;
 using Amazon.Lambda.Core;
+using System.Threading.Tasks;
 
 public partial class Example
 {
@@ -20,19 +21,19 @@ public partial class Example
 
     AlexaRequestPipeline Initialize()
     {
-        _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{new LaunchHandler(this)});
+        _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{new PlayAGameHandler(this)});
         return _pipeline;
     }
 
-    private class LaunchHandler : LaunchRequestHandler
+    private class PlayAGameHandler : IntentNameRequestHandler
     {
         private Example Wrapper { get; }
 
-        internal LaunchHandler(Example wrapper)
+        internal PlayAGameHandler(Example wrapper) : base("PlayAGame")
         {
             Wrapper = wrapper;
         }
 
-        public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information) => Task.FromResult(Wrapper.Launch((LaunchRequest)information.SkillRequest.Request));
+        public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information) => Wrapper.PlayAGame((IntentRequest)information.SkillRequest.Request);
     }
 }

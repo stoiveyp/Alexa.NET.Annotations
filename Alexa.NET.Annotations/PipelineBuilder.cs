@@ -1,7 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
-using Alexa.NET.Request.Type;
-using Alexa.NET.RequestHandlers.Handlers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,7 +11,6 @@ namespace Alexa.NET.Annotations
     {
         private const string PipelineClass = "AlexaRequestPipeline";
         private const string PipelineFieldName = "_pipeline";
-        private static readonly string[] MarkerList = { "Launch" };
 
         public static void Execute(SourceProductionContext context, ImmutableArray<ClassDeclarationSyntax?> args)
         {
@@ -29,6 +26,8 @@ namespace Alexa.NET.Annotations
                 context.AddSource(hint, pipelineCode);
             }
         }
+
+        public static string NameOnly(this string fullAttribute) => fullAttribute.Substring(0,fullAttribute.Length-9);
 
         private static string BuildPipelineSource(ClassDeclarationSyntax cls)
         {
@@ -71,7 +70,7 @@ namespace Alexa.NET.Annotations
         public static ClassDeclarationSyntax BuildSkill(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax cls)
         {
             var handlers = cls.Members.OfType<MethodDeclarationSyntax>()
-                .Where(HasMarkerAttribute).Select(m => MethodToPipelineClass(m, MarkerAttribute(m), cls));
+                .Where(MarkerHelper.HasMarkerAttribute).Select(m => MethodToPipelineClass(m, m.MarkerAttribute(), cls));
 
             return skillClass
                 .AddPipelineField()
@@ -93,7 +92,7 @@ namespace Alexa.NET.Annotations
         {
             var newPipeline = SF.ObjectCreationExpression(SF.IdentifierName(PipelineClass))
                 .WithArgumentList(SF.ArgumentList(SF.SeparatedList(new[]{SF.Argument(
-                SF.ImplicitArrayCreationExpression(
+                SF.ArrayCreationExpression(SF.ArrayType(SF.IdentifierName("IAlexaRequestHandler<SkillRequest>[]")),
                     SF.InitializerExpression(SyntaxKind.ArrayInitializerExpression,
                         SF.SeparatedList<ExpressionSyntax>(
                         handlers.Select(h =>
@@ -118,51 +117,21 @@ namespace Alexa.NET.Annotations
             return skillClass.AddMembers(executeMethod);
         }
 
-        private static ClassDeclarationSyntax MethodToPipelineClass(MethodDeclarationSyntax method, string marker, ClassDeclarationSyntax containerClass)
+        private static ClassDeclarationSyntax MethodToPipelineClass(MethodDeclarationSyntax method, AttributeSyntax marker, ClassDeclarationSyntax containerClass)
         {
             if (marker == null) throw new ArgumentNullException(nameof(marker));
-            var info = MarkerTypeInfo[marker];
+            var info = MarkerInfo.MarkerTypeInfo[marker.MarkerName()!];
             return SF.ClassDeclaration(method.Identifier.Text + "Handler")
-                .WithBaseList(SF.BaseList(SF.SingletonSeparatedList(info.BaseType)))
+                .WithBaseList(SF.BaseList(SF.SingletonSeparatedList(info.BaseType(marker))))
                 .WithModifiers(SF.TokenList(
                     SF.Token(SyntaxKind.PrivateKeyword)))
                 .AddWrapperField(containerClass)
-                .AddWrapperConstructor(containerClass)
+                .AddWrapperConstructor(containerClass, info.Constructor?.Invoke(marker))
                 .AddExecuteMethod(method,info);
-        }
-
-        public static Dictionary<string, MarkerInfo> MarkerTypeInfo = new()
-        {
-            { "Launch", new(nameof(LaunchRequestHandler), nameof(LaunchRequest)) }
-        };
-
-
-        private static string? MarkerAttribute(MethodDeclarationSyntax method)
-        {
-            return method.AttributeLists.SelectMany(a => a.Attributes)
-                .Select(a => a.Name is IdentifierNameSyntax id && MarkerList.Contains(id.Identifier.Text) ? id.Identifier.Text : null).FirstOrDefault();
-        }
-
-        private static bool HasMarkerAttribute(MethodDeclarationSyntax method)
-        {
-            return !string.IsNullOrWhiteSpace(MarkerAttribute(method));
         }
 
         private static ThrowStatementSyntax NotImplemented() => SF.ThrowStatement(
             SF.ObjectCreationExpression(SF.IdentifierName(nameof(NotImplementedException)),
                 SF.ArgumentList(), null));
-    }
-
-    public class MarkerInfo
-    {
-        public MarkerInfo(string baseClassName, string requestType)
-        {
-            BaseType = SF.SimpleBaseType(SF.IdentifierName(baseClassName));
-            RequestType = SF.IdentifierName(requestType);
-        }
-
-        public BaseTypeSyntax BaseType { get; }
-        public IdentifierNameSyntax RequestType { get; }
-
     }
 }

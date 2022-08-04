@@ -9,10 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Examples\IntentExample.cs" />
     <Compile Remove="Examples\LaunchExample.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Examples\IntentExample.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Examples\LaunchExample.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
