@@ -109,10 +109,18 @@ namespace Alexa.NET.Annotations
 
         public static ClassDeclarationSyntax AddExecuteMethod(this ClassDeclarationSyntax skillClass)
         {
+            const string skillRequestParameterName = "skillRequest";
+            var invokePipeline = SF.InvocationExpression(
+                SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,SF.IdentifierName(PipelineFieldName),SF.IdentifierName("Process")))
+                .WithArgumentList(SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.IdentifierName(skillRequestParameterName)))));
+
             var executeMethod = SF.MethodDeclaration(
-                SF.GenericName(SF.Identifier(nameof(Task)), SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName("SkillResponse")))), "Execute")
-                .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword)))
-                .AddBodyStatements(NotImplemented());
+                    SF.GenericName(SF.Identifier(nameof(Task)),
+                        SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName("SkillResponse")))),
+                    "Execute")
+                .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(SF.Parameter(SF.Identifier("skillRequest")).WithType(SF.IdentifierName("SkillRequest")))))
+                .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.VirtualKeyword)))
+                .WithExpressionBody(SF.ArrowExpressionClause(invokePipeline)).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
 
             return skillClass.AddMembers(executeMethod);
         }

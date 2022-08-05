@@ -14,6 +14,12 @@ public partial class Example
         return ResponseBuilder.Ask("What's your move? Rock, Paper or scissors?", new("What's your move?"));
     }
 
+    [Intent(BuiltInIntent.Fallback)]
+    public async Task<SkillResponse> Fallback(IntentRequest intent)
+    {
+        return ResponseBuilder.Tell("you win");
+    }
+
     [Intent("PlayAGame")]
     public async Task<SkillResponse> PlayAGame(IntentRequest intent)
     {
