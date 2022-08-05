@@ -13,11 +13,7 @@ using Amazon.Lambda.Core;
 public partial class Example
 {
     private AlexaRequestPipeline _pipeline;
-    public Task<SkillResponse> Execute()
-    {
-        throw new NotImplementedException();
-    }
-
+    public virtual Task<SkillResponse> Execute(SkillRequest skillRequest) => _pipeline.Process(skillRequest);
     AlexaRequestPipeline Initialize()
     {
         _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{new LaunchHandler(this)});

@@ -1,6 +1,7 @@
 ﻿using Alexa.NET;
 using Alexa.NET.Annotations.Markers;
 using Alexa.NET.Request.Type;
+using Alexa.NET.RequestHandlers;
 using Alexa.NET.Response;
 using Amazon.Lambda.Core;
 
