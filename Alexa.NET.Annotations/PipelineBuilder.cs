@@ -1,5 +1,7 @@
 ﻿using System.Collections.Immutable;
+using System.Reflection;
 using System.Text;
+using Alexa.NET.Annotations.Markers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,6 +19,14 @@ namespace Alexa.NET.Annotations
             if (!args.Any())
             {
                 return;
+            }
+
+            if (args.Any(c => c.ContainsAttributeNamed(nameof(AWSLambdaAttribute).NameOnly())))
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                var stream = assembly.GetManifestResourceStream("Alexa.NET.Annotations.StaticCode.LambdaHelper.cs");
+                using var reader = new StreamReader(stream);
+                context.AddSource("AlexaSkillLambdaHelper.g.cs", reader.ReadToEnd());
             }
 
             foreach (var cls in args)
@@ -58,7 +68,7 @@ namespace Alexa.NET.Annotations
                     SF.Token(SyntaxKind.PublicKeyword),
                     SF.Token(SyntaxKind.PartialKeyword)));
 
-            //Debugger.Launch();
+            
             if (nsUsage != null)
             {
                 return initialSetup.AddMembers(SF.NamespaceDeclaration(nsUsage.Name).AddMembers(skillClass.BuildSkill(cls)));
@@ -70,7 +80,7 @@ namespace Alexa.NET.Annotations
         public static ClassDeclarationSyntax BuildSkill(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax cls)
         {
             var handlers = cls.Members.OfType<MethodDeclarationSyntax>()
-                .Where(MarkerHelper.HasMarkerAttribute).Select(m => MethodToPipelineClass(m, m.MarkerAttribute(), cls));
+                .Where(MarkerHelper.HasMarkerAttribute).Select(m => MethodToPipelineClass(m, m.MarkerAttribute()!, cls));
 
             return skillClass
                 .AddPipelineField()
