@@ -1,4 +1,5 @@
-﻿using Alexa.NET.Request;
+﻿//HintName: AlexaSkillLambdaHelper.g.cs
+using Alexa.NET.Request;
 using Alexa.NET.Response;
 using Amazon.Lambda.RuntimeSupport;
 using Newtonsoft.Json;

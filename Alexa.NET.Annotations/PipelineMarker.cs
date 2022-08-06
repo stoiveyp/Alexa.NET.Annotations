@@ -14,27 +14,17 @@ namespace Alexa.NET.Annotations
 
         public static bool AttributePredicate(SyntaxNode sn, CancellationToken _)
         {
-            return sn is AttributeSyntax;
+            return sn is ClassDeclarationSyntax;
         }
 
         public static ClassDeclarationSyntax? SkillClasses(GeneratorSyntaxContext context, CancellationToken _)
         {
-            if (context.Node is not AttributeSyntax att)
+            if (context.Node is not ClassDeclarationSyntax cls)
             {
                 return null;
             }
 
-            if (att.Parent is not AttributeListSyntax list)
-            {
-                return null;
-            }
-
-            if (list.Parent is ClassDeclarationSyntax cls && cls.ContainsAttributeNamed(nameof(AlexaSkillAttribute).NameOnly()))
-            {
-                return cls;
-            }
-
-            return null;
+            return cls.ContainsAttributeNamed(nameof(AlexaSkillAttribute).NameOnly()) ? cls : null;
         }
 
         public static bool ContainsAttributeNamed(this ClassDeclarationSyntax cls, string markerName)

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Alexa.NET.Annotations.Markers
 {
-    public class AWSLambdaAttribute:Attribute
+    public class AlexaLambdaAttribute:Attribute
     {
     }
 }

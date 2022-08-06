@@ -25,4 +25,11 @@ public class SnapshotTests
         var sampleCode = System.IO.File.ReadAllText("Examples/Combined.cs");
         return Utility.Verify(sampleCode);
     }
+
+    [Fact]
+    public void AlexaLambdaAddsHelper()
+    {
+        var sampleCode = System.IO.File.ReadAllText("Examples/Combined.cs");
+        Assert.True(Utility.HasSource(sampleCode, "AlexaSkillLambdaHelper.g.cs"));
+    }
 }

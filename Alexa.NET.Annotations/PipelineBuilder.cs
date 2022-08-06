@@ -21,7 +21,7 @@ namespace Alexa.NET.Annotations
                 return;
             }
 
-            if (args.Any(c => c.ContainsAttributeNamed(nameof(AWSLambdaAttribute).NameOnly())))
+            if (args.Any(c => c.ContainsAttributeNamed(nameof(AlexaLambdaAttribute).NameOnly())))
             {
                 var assembly = Assembly.GetExecutingAssembly();
                 var stream = assembly.GetManifestResourceStream("Alexa.NET.Annotations.StaticCode.LambdaHelper.cs");
@@ -48,16 +48,22 @@ namespace Alexa.NET.Annotations
             return sb.ToString();
         }
 
+        private static NameSyntax? BuildName(params string[] pieces) => pieces.Aggregate<string?, NameSyntax?>(null, (current, piece) => current == null
+                ? SF.IdentifierName(piece)
+                : SF.QualifiedName(current, SF.IdentifierName(piece)));
+
         private static CompilationUnitSyntax GenerateCodeUnit(ClassDeclarationSyntax cls)
         {
             var usings = SF.List(new []
             {
-                SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("Alexa"),SF.IdentifierName("NET")),SF.IdentifierName("Request"))),
-                SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("Alexa"),SF.IdentifierName("NET")),SF.IdentifierName("RequestHandlers"))),
-                SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("Alexa"),SF.IdentifierName("NET")),SF.IdentifierName("RequestHandlers")),SF.IdentifierName("Handlers"))),
-                SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("System"),SF.IdentifierName("Threading")),SF.IdentifierName("Tasks"))),
-                SF.UsingDirective(SF.IdentifierName("System")),
-            }.Concat(cls.Ancestors().OfType<CompilationUnitSyntax>().Single().Usings).Distinct());
+                SF.UsingDirective(BuildName("System")!),
+                SF.UsingDirective(BuildName("Alexa","NET","Request")!),
+                SF.UsingDirective(BuildName("Alexa","NET","Response")!),
+                SF.UsingDirective(BuildName("Alexa","NET","Request","Type")!),
+                SF.UsingDirective(BuildName("Alexa","NET","RequestHandlers")!),
+                SF.UsingDirective(BuildName("Alexa","NET","RequestHandlers","Handlers")!),
+                SF.UsingDirective(BuildName("System","Threading","Tasks")!),
+            }.Distinct());
 
             var initialSetup = SF.CompilationUnit().WithUsings(usings);
 

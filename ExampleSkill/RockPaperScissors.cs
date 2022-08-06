@@ -8,6 +8,7 @@ using Amazon.Lambda.Core;
 namespace ExampleSkill
 {
     [AlexaSkill]
+    [AlexaLambda]
     public partial class RockPaperScissors
     {
         [Launch]

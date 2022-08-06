@@ -6,6 +6,7 @@ using Amazon.Lambda.Core;
 using System.Threading.Tasks;
 
 [AlexaSkill]
+[AlexaLambda]
 public partial class Example
 {
     [Launch]

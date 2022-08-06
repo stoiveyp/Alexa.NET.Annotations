@@ -1,4 +1,5 @@
-﻿using Alexa.NET.Request;
+﻿//HintName: AlexaSkillLambdaHelper.g.cs
+using Alexa.NET.Request;
 using Alexa.NET.Response;
 using Amazon.Lambda.RuntimeSupport;
 using Newtonsoft.Json;
@@ -10,7 +11,7 @@ namespace Alexa.NET.Annotations.StaticCode
         private static readonly MemoryStream ResponseStream = new();
         private static readonly JsonSerializer JsonSerializer = new();
 
-        private static async Task RunLambda<T>(string[] args) where T : ISkillLambda, new()
+        private static async Task RunLambda<T>(string[] args) where T:ISkillLambda,new()
         {
             var skillClass = new T();
             using var bootstrap = new LambdaBootstrap(req => HandleInvocation(req, skillClass.Process));
@@ -22,7 +23,7 @@ namespace Alexa.NET.Annotations.StaticCode
             using var jr = new JsonTextReader(new StreamReader(invocation.InputStream));
             var input = JsonSerializer.Deserialize<SkillRequest>(jr);
 
-            var output = await process(input);
+            var output =  await process(input);
 
             ResponseStream.SetLength(0);
             using var jw = new JsonTextWriter(new StreamWriter(ResponseStream));
