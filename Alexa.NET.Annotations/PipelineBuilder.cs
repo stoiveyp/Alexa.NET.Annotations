@@ -31,7 +31,7 @@ namespace Alexa.NET.Annotations
 
             foreach (var cls in args)
             {
-                var hint = $"{cls.Identifier.Text}.g.cs";
+                var hint = $"{cls.Identifier.Text}.skill.g.cs";
                 var pipelineCode = BuildPipelineSource(cls);
                 context.AddSource(hint, pipelineCode);
             }

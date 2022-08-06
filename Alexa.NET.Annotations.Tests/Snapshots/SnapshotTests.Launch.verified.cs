@@ -1,4 +1,4 @@
-﻿//HintName: Example.g.cs
+﻿//HintName: Example.skill.g.cs
 using System;
 using Alexa.NET.Request;
 using Alexa.NET.Response;
