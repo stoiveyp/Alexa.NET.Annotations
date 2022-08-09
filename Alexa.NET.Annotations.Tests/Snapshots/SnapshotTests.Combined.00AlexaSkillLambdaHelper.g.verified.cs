@@ -11,10 +11,10 @@ namespace Alexa.NET.Annotations.StaticCode
         private static readonly MemoryStream ResponseStream = new();
         private static readonly JsonSerializer JsonSerializer = new();
 
-        private static async Task RunLambda<T>(string[] args) where T : ISkillLambda, new()
+        public static async Task RunLambda<T>(string[] args) where T : ISkillLambda, new()
         {
             var skillClass = new T();
-            using var bootstrap = new LambdaBootstrap(req => HandleInvocation(req, skillClass.Process));
+            using var bootstrap = new LambdaBootstrap(req => HandleInvocation(req, skillClass.Execute));
             await bootstrap.RunAsync();
         }
 
@@ -34,8 +34,8 @@ namespace Alexa.NET.Annotations.StaticCode
         }
     }
 
-    internal interface ISkillLambda
+    public interface ISkillLambda
     {
-        Task<SkillResponse> Process(SkillRequest request);
+        Task<SkillResponse> Execute(SkillRequest request);
     }
 }
