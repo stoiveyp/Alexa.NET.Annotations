@@ -1,5 +1,6 @@
 ﻿using Alexa.NET;
 using Alexa.NET.Annotations.Markers;
+using Alexa.NET.Annotations.StaticCode;
 using Alexa.NET.Request.Type;
 using Alexa.NET.RequestHandlers;
 using Alexa.NET.Response;
@@ -8,6 +9,7 @@ using Amazon.Lambda.Core;
 namespace ExampleSkill
 {
     [AlexaSkill]
+    [AlexaLambda]
     public partial class RockPaperScissors
     {
         [Launch]

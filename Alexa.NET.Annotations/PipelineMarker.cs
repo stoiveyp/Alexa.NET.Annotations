@@ -1,44 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
+using Alexa.NET.Annotations.Markers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Alexa.NET.Annotations
 {
-    internal class PipelineMarker
+    internal static class PipelineMarker
     {
         public static void StaticCodeGeneration(IncrementalGeneratorPostInitializationContext obj)
         {
-            
+
         }
 
         public static bool AttributePredicate(SyntaxNode sn, CancellationToken _)
         {
-            return sn is AttributeSyntax;
+            return sn is ClassDeclarationSyntax;
         }
 
         public static ClassDeclarationSyntax? SkillClasses(GeneratorSyntaxContext context, CancellationToken _)
         {
-            if (context.Node is not AttributeSyntax att)
+            if (context.Node is not ClassDeclarationSyntax cls)
             {
                 return null;
             }
 
-            if (att.Parent is not AttributeListSyntax list)
-            {
-                return null;
-            }
+            return cls.ContainsAttributeNamed(nameof(AlexaSkillAttribute).NameOnly()) ? cls : null;
+        }
 
-            if (list.Parent is ClassDeclarationSyntax cls)
-            {
-                return cls;
-            }
-
-            return null;
+        public static bool ContainsAttributeNamed(this ClassDeclarationSyntax cls, string markerName)
+        {
+            return cls.AttributeLists
+                .SelectMany(al => al.Attributes)
+                .Any(n => n.MarkerName() == markerName);
         }
     }
 }

@@ -1,14 +1,10 @@
-﻿//HintName: Example.g.cs
+﻿//HintName: Example.skill.g.cs
+using System;
 using Alexa.NET.Request;
+using Alexa.NET.Response;
+using Alexa.NET.Request.Type;
 using Alexa.NET.RequestHandlers;
 using Alexa.NET.RequestHandlers.Handlers;
-using System.Threading.Tasks;
-using System;
-using Alexa.NET;
-using Alexa.NET.Annotations.Markers;
-using Alexa.NET.Request.Type;
-using Alexa.NET.Response;
-using Amazon.Lambda.Core;
 using System.Threading.Tasks;
 
 public partial class Example

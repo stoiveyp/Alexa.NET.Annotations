@@ -14,10 +14,19 @@ namespace Alexa.NET.Annotations.Tests
             var generator = new PipelineGenerator();
             GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
             driver = driver.RunGenerators(compilation);
-
-            var result = driver.GetRunResult();
-
             return Verifier.Verify(driver).UseDirectory("Snapshots");
+        }
+
+        public static bool HasSource(string sampleCode, string name)
+        {
+            var tree = CSharpSyntaxTree.ParseText(sampleCode);
+
+            var compilation = CSharpCompilation.Create("Tests", new[] { tree });
+
+            var generator = new PipelineGenerator();
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+            driver = driver.RunGenerators(compilation);
+            return driver.GetRunResult().Results.SelectMany(r => r.GeneratedSources).Any(s => s.HintName == name);
         }
     }
 }

@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Alexa.NET.Annotations\Alexa.NET.Annotations.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
