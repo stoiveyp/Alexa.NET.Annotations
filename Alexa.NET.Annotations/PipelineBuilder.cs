@@ -1,5 +1,7 @@
 ﻿using System.Collections.Immutable;
+using System.Reflection;
 using System.Text;
+using Alexa.NET.Annotations.Markers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,35 +21,93 @@ namespace Alexa.NET.Annotations
                 return;
             }
 
+            void AddHelper()
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                var stream = assembly.GetManifestResourceStream("Alexa.NET.Annotations.StaticCode.LambdaHelper.cs");
+                using var reader = new StreamReader(stream);
+                context.AddSource("AlexaSkillLambdaHelper.g.cs", reader.ReadToEnd());
+            }
+
             foreach (var cls in args)
             {
-                var hint = $"{cls.Identifier.Text}.g.cs";
-                var pipelineCode = BuildPipelineSource(cls);
-                context.AddSource(hint, pipelineCode);
+                context.AddSource($"{cls.Identifier.Text}.skill.g.cs", GeneratePipelineUnit(cls).ToCodeString());
+
+                if (cls.ContainsAttributeNamed(nameof(AlexaLambdaAttribute).NameOnly()))
+                {
+                    AddHelper();
+                    context.AddSource($"{cls.Identifier.Text}.lambda.g.cs", BuildMainClass(cls).ToCodeString());
+                }
             }
+        }
+
+        private static CompilationUnitSyntax BuildMainClass(ClassDeclarationSyntax cls)
+        {
+            var usings = SF.List(new[]
+            {
+                SF.UsingDirective(BuildName("System")!),
+                SF.UsingDirective(BuildName("Alexa","NET","Annotations","StaticCode")!),
+            }.Distinct());
+
+            var initialSetup = SF.CompilationUnit().WithUsings(usings);
+
+            var nsUsage = cls.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
+
+            var skillClass = SF.ClassDeclaration(cls.Identifier.Text)
+                .WithModifiers(SF.TokenList(
+                    SF.Token(SyntaxKind.PublicKeyword),
+                    SF.Token(SyntaxKind.PartialKeyword)))
+                .WithBaseList(SF.BaseList(SF.SingletonSeparatedList<BaseTypeSyntax>(SF.SimpleBaseType(SF.IdentifierName("ISkillLambda")))));
+
+            var pipelineInvocation = SF.InvocationExpression(
+                    SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        SF.IdentifierName("LambdaHelper"),
+                        SF.GenericName(SF.Identifier("RunLambda"),
+                            SF.TypeArgumentList(
+                                SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(cls.Identifier.Text))))))
+                .WithArgumentList(SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.IdentifierName("args")))));
+
+            var main = SF.MethodDeclaration(SF.IdentifierName(nameof(Task)), "Main")
+                .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.StaticKeyword)))
+                .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(SF.Parameter(SF.Identifier("args")).WithType(SF.IdentifierName("string[]")))))
+                .WithExpressionBody(SF.ArrowExpressionClause(pipelineInvocation)).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
+
+            skillClass = skillClass.AddMembers(main);
+
+            if (nsUsage != null)
+            {
+                return initialSetup.AddMembers(SF.NamespaceDeclaration(nsUsage.Name).AddMembers(skillClass));
+            }
+
+            return initialSetup.AddMembers(skillClass);
         }
 
         public static string NameOnly(this string fullAttribute) => fullAttribute.Substring(0,fullAttribute.Length-9);
 
-        private static string BuildPipelineSource(ClassDeclarationSyntax cls)
+        internal static string ToCodeString(this SyntaxNode token)
         {
             var sb = new StringBuilder();
             var writer = new StringWriter(sb);
-            var generatedCodeUnit = GenerateCodeUnit(cls);
-            generatedCodeUnit.NormalizeWhitespace().WriteTo(writer);
+            token.NormalizeWhitespace().WriteTo(writer);
             return sb.ToString();
         }
 
-        private static CompilationUnitSyntax GenerateCodeUnit(ClassDeclarationSyntax cls)
+        private static NameSyntax? BuildName(params string[] pieces) => pieces.Aggregate<string?, NameSyntax?>(null, (current, piece) => current == null
+                ? SF.IdentifierName(piece)
+                : SF.QualifiedName(current, SF.IdentifierName(piece)));
+
+        private static CompilationUnitSyntax GenerateMainUnit(ClassDeclarationSyntax cls)
         {
-            var usings = SF.List(new []
+            var usings = SF.List(new[]
             {
-                SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("Alexa"),SF.IdentifierName("NET")),SF.IdentifierName("Request"))),
-                SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("Alexa"),SF.IdentifierName("NET")),SF.IdentifierName("RequestHandlers"))),
-                SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("Alexa"),SF.IdentifierName("NET")),SF.IdentifierName("RequestHandlers")),SF.IdentifierName("Handlers"))),
-                SF.UsingDirective(SF.QualifiedName(SF.QualifiedName(SF.IdentifierName("System"),SF.IdentifierName("Threading")),SF.IdentifierName("Tasks"))),
-                SF.UsingDirective(SF.IdentifierName("System")),
-            }.Concat(cls.Ancestors().OfType<CompilationUnitSyntax>().Single().Usings).Distinct());
+                SF.UsingDirective(BuildName("System")!),
+                SF.UsingDirective(BuildName("Alexa","NET","Request")!),
+                SF.UsingDirective(BuildName("Alexa","NET","Response")!),
+                SF.UsingDirective(BuildName("Alexa","NET","Request","Type")!),
+                SF.UsingDirective(BuildName("Alexa","NET","RequestHandlers")!),
+                SF.UsingDirective(BuildName("Alexa","NET","RequestHandlers","Handlers")!),
+                SF.UsingDirective(BuildName("System","Threading","Tasks")!),
+            }.Distinct());
 
             var initialSetup = SF.CompilationUnit().WithUsings(usings);
 
@@ -58,7 +118,38 @@ namespace Alexa.NET.Annotations
                     SF.Token(SyntaxKind.PublicKeyword),
                     SF.Token(SyntaxKind.PartialKeyword)));
 
-            //Debugger.Launch();
+
+            if (nsUsage != null)
+            {
+                return initialSetup.AddMembers(SF.NamespaceDeclaration(nsUsage.Name).AddMembers(skillClass.BuildSkill(cls)));
+            }
+
+            return initialSetup.AddMembers(skillClass.BuildSkill(cls));
+        }
+
+        private static CompilationUnitSyntax GeneratePipelineUnit(ClassDeclarationSyntax cls)
+        {
+            var usings = SF.List(new []
+            {
+                SF.UsingDirective(BuildName("System")!),
+                SF.UsingDirective(BuildName("Alexa","NET","Request")!),
+                SF.UsingDirective(BuildName("Alexa","NET","Response")!),
+                SF.UsingDirective(BuildName("Alexa","NET","Request","Type")!),
+                SF.UsingDirective(BuildName("Alexa","NET","RequestHandlers")!),
+                SF.UsingDirective(BuildName("Alexa","NET","RequestHandlers","Handlers")!),
+                SF.UsingDirective(BuildName("System","Threading","Tasks")!),
+            }.Distinct());
+
+            var initialSetup = SF.CompilationUnit().WithUsings(usings);
+
+            var nsUsage = cls.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
+
+            var skillClass = SF.ClassDeclaration(cls.Identifier.Text)
+                .WithModifiers(SF.TokenList(
+                    SF.Token(SyntaxKind.PublicKeyword),
+                    SF.Token(SyntaxKind.PartialKeyword)));
+
+            
             if (nsUsage != null)
             {
                 return initialSetup.AddMembers(SF.NamespaceDeclaration(nsUsage.Name).AddMembers(skillClass.BuildSkill(cls)));
@@ -70,7 +161,7 @@ namespace Alexa.NET.Annotations
         public static ClassDeclarationSyntax BuildSkill(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax cls)
         {
             var handlers = cls.Members.OfType<MethodDeclarationSyntax>()
-                .Where(MarkerHelper.HasMarkerAttribute).Select(m => MethodToPipelineClass(m, m.MarkerAttribute(), cls));
+                .Where(MarkerHelper.HasMarkerAttribute).Select(m => MethodToPipelineClass(m, m.MarkerAttribute()!, cls));
 
             return skillClass
                 .AddPipelineField()
