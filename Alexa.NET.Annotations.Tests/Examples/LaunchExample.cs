@@ -2,7 +2,6 @@
 using Alexa.NET.Annotations.Markers;
 using Alexa.NET.Request.Type;
 using Alexa.NET.Response;
-using Amazon.Lambda.Core;
 
 [AlexaSkill]
 public partial class Example

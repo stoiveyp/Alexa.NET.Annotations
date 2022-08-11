@@ -4,7 +4,6 @@ using Alexa.NET.Annotations.StaticCode;
 using Alexa.NET.Request.Type;
 using Alexa.NET.RequestHandlers;
 using Alexa.NET.Response;
-using Amazon.Lambda.Core;
 
 namespace ExampleSkill
 {
