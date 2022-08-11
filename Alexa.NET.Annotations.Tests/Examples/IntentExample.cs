@@ -4,6 +4,8 @@ using Alexa.NET.Request.Type;
 using Alexa.NET.Response;
 using System.Threading.Tasks;
 
+namespace TestyMcTestFace;
+
 [AlexaSkill]
 public partial class Example
 {
