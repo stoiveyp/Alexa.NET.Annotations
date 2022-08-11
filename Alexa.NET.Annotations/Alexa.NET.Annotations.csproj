@@ -10,6 +10,10 @@
 	  <PackageReleaseNotes>Initial release</PackageReleaseNotes>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+	  <Version>1.0.0-alpha2</Version>
+	  <Description>Library to help make writing your first Alexa skill smaller and easier</Description>
+	  <Authors>Steven Pears</Authors>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -29,29 +33,24 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Alexa.NET" Version="1.20.0" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Alexa.NET.RequestHandlers" Version="4.2.0" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Alexa.NET" Version="1.20.0" />
+    <PackageReference Include="Alexa.NET.RequestHandlers" Version="4.2.0" />
     <PackageReference Include="Amazon.Lambda.Core" Version="2.1.0" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Amazon.Lambda.RuntimeSupport" Version="1.8.2" />
+    <PackageReference Include="Amazon.Lambda.RuntimeSupport" Version="1.8.2" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="2.1.0" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.2.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PkgPackage_Name)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
-
-	<PropertyGroup>
-	<GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
-	<Version>1.0.0-alpha1</Version>
-	<Description>Library to help make writing your first Alexa skill smaller and easier</Description>
-	</PropertyGroup>
 
 	<Target Name="GetDependencyTargetPaths">
 		<ItemGroup>
-			<TargetPathWithTargetPlatformMoniker Include="$(PKGAlexa_Net)\lib\netstandard2.0\Alexa.NET.dll" IncludeRuntimeDependency="false" />
-			<TargetPathWithTargetPlatformMoniker Include="$(PKGAlexa_Net_RequestHandlers)\lib\netstandard2.0\Alexa.NET.RequestHandlers.dll" IncludeRuntimeDependency="false" />
 			<TargetPathWithTargetPlatformMoniker Include="$(PKGAmazon_Lambda_Core)\lib\netstandard2.0\Amazon.Lambda.Core.dll" IncludeRuntimeDependency="false" />
+			<TargetPathWithTargetPlatformMoniker Include="$(PKGAmazon_Lambda_RuntimeSupport)\lib\netstandard2.0\Amazon.Lambda.RuntimeSupport.dll" IncludeRuntimeDependency="false" />
 			<TargetPathWithTargetPlatformMoniker Include="$(PKGAmazon_Lambda_Serialization_Json)\lib\netstandard2.0\Amazon.Lambda.Serialization.Json.dll" IncludeRuntimeDependency="false" />
 		</ItemGroup>
 	</Target>
