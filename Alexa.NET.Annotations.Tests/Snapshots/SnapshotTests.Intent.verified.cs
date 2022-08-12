@@ -13,10 +13,9 @@ namespace TestyMcTestFace
     {
         private AlexaRequestPipeline _pipeline;
         public virtual Task<SkillResponse> Execute(SkillRequest skillRequest) => _pipeline.Process(skillRequest);
-        AlexaRequestPipeline Initialize()
+        public void Initialize()
         {
             _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{new PlayAGameHandler(this)});
-            return _pipeline;
         }
 
         private class PlayAGameHandler : IntentNameRequestHandler

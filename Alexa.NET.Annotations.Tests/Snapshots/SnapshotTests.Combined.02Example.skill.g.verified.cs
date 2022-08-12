@@ -11,10 +11,9 @@ public partial class Example
 {
     private AlexaRequestPipeline _pipeline;
     public virtual Task<SkillResponse> Execute(SkillRequest skillRequest) => _pipeline.Process(skillRequest);
-    AlexaRequestPipeline Initialize()
+    public void Initialize()
     {
         _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{new LaunchHandler(this), new FallbackHandler(this), new PlayAGameHandler(this)});
-        return _pipeline;
     }
 
     private class LaunchHandler : LaunchRequestHandler
