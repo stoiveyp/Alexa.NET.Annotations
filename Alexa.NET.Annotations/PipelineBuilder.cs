@@ -57,7 +57,7 @@ namespace Alexa.NET.Annotations
 
             var initialSetup = SF.CompilationUnit().WithUsings(usings);
 
-            var nsUsage = cls.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
+            var namespaceName = FindNamespace(cls);
 
             var skillClass = SF.ClassDeclaration(cls.Identifier.Text)
                 .WithModifiers(SF.TokenList(
@@ -82,12 +82,25 @@ namespace Alexa.NET.Annotations
 
             var staticClass = SF.ClassDeclaration("Program").WithModifiers(SF.TokenList(SF.Token(SyntaxKind.StaticKeyword))).AddMembers(main);
 
-            if (nsUsage != null)
+            if (namespaceName != null)
             {
-                return initialSetup.AddMembers(SF.NamespaceDeclaration(nsUsage.Name).AddMembers(skillClass));
+                return initialSetup.AddMembers(SF.NamespaceDeclaration(namespaceName).AddMembers(skillClass));
             }
 
             return initialSetup.AddMembers(skillClass);
+        }
+
+        private static NameSyntax? FindNamespace(ClassDeclarationSyntax cls)
+        {
+            var containerNs = cls.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
+            if (containerNs != null)
+            {
+                return containerNs.Name;
+            }
+
+            var unit = cls.Ancestors().OfType<CompilationUnitSyntax>().FirstOrDefault();
+            var fileScope = unit?.Members.OfType<FileScopedNamespaceDeclarationSyntax>().FirstOrDefault();
+            return fileScope?.Name;
         }
 
         public static string NameOnly(this string fullAttribute) => fullAttribute.Substring(0,fullAttribute.Length-9);
@@ -150,7 +163,7 @@ namespace Alexa.NET.Annotations
 
             var initialSetup = SF.CompilationUnit().WithUsings(usings);
 
-            var nsUsage = cls.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
+            var nsName = FindNamespace(cls);
 
             var skillClass = SF.ClassDeclaration(cls.Identifier.Text)
                 .WithModifiers(SF.TokenList(
@@ -158,9 +171,9 @@ namespace Alexa.NET.Annotations
                     SF.Token(SyntaxKind.PartialKeyword)));
 
             
-            if (nsUsage != null)
+            if (nsName != null)
             {
-                return initialSetup.AddMembers(SF.NamespaceDeclaration(nsUsage.Name).AddMembers(skillClass.BuildSkill(cls)));
+                return initialSetup.AddMembers(SF.NamespaceDeclaration(nsName).AddMembers(skillClass.BuildSkill(cls)));
             }
 
             return initialSetup.AddMembers(skillClass.BuildSkill(cls));
