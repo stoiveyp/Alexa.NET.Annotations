@@ -205,10 +205,10 @@ namespace Alexa.NET.Annotations
                                 SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.ThisExpression())))))))))})));
 
             var initializeMethod =
-                SF.MethodDeclaration(SF.IdentifierName(PipelineClass), "Initialize")
+                SF.MethodDeclaration(SF.PredefinedType(SF.Token(SyntaxKind.VoidKeyword)), "Initialize")
+                    .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword)))
                     .AddBodyStatements(
-                        SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, SF.IdentifierName(PipelineFieldName), newPipeline)),
-                        SF.ReturnStatement(SF.IdentifierName(PipelineFieldName)));
+                        SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, SF.IdentifierName(PipelineFieldName), newPipeline)));
             return skillClass.AddMembers(initializeMethod).AddMembers(handlers.ToArray());
         }
 

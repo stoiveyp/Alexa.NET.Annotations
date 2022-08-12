@@ -12,6 +12,7 @@ namespace Alexa.NET.Annotations.StaticCode
         public static Task RunLambda<T>() where T : ISkillLambda, new()
         {
             var skillClass = new T();
+            skillClass.Initialize();
 
             //https://docs.aws.amazon.com/lambda/latest/dg/csharp-handler.html
 
@@ -24,5 +25,6 @@ namespace Alexa.NET.Annotations.StaticCode
     public interface ISkillLambda
     {
         Task<SkillResponse> Execute(SkillRequest request);
+        void Initialize();
     }
 }
