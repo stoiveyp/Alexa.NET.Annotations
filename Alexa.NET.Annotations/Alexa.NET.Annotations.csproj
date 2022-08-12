@@ -11,7 +11,7 @@
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
-	  <Version>1.0.0-alpha4</Version>
+	  <Version>1.0.0-alpha5</Version>
 	  <Description>Library to help make writing your first Alexa skill smaller and easier</Description>
 	  <Authors>Steven Pears</Authors>
   </PropertyGroup>
