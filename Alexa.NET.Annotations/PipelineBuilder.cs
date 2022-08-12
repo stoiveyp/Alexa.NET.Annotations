@@ -36,18 +36,24 @@ namespace Alexa.NET.Annotations
                 if (cls.ContainsAttributeNamed(nameof(AlexaLambdaAttribute).NameOnly()))
                 {
                     AddHelper();
-                    context.AddSource($"{cls.Identifier.Text}.lambda.g.cs", BuildMainClass(cls).ToCodeString());
+                    context.AddSource($"{cls.Identifier.Text}.lambda.g.cs", BuildTopLevelStatements(cls).ToCodeString());
                 }
             }
         }
 
-        private static CompilationUnitSyntax BuildMainClass(ClassDeclarationSyntax cls)
+        private static CompilationUnitSyntax BuildTopLevelStatements(ClassDeclarationSyntax cls)
         {
             var usings = SF.List(new[]
             {
                 SF.UsingDirective(BuildName("System")!),
-                SF.UsingDirective(BuildName("Alexa","NET","Annotations","StaticCode")!),
+                SF.UsingDirective(BuildName("Alexa","NET","Annotations","StaticCode")!)
             }.Distinct());
+
+            var namespaceName = FindNamespace(cls);
+            if (namespaceName != null)
+            {
+                usings = usings.Add(SF.UsingDirective(namespaceName));
+            }
 
             var initialSetup = SF.CompilationUnit().WithUsings(usings);
 
@@ -59,20 +65,22 @@ namespace Alexa.NET.Annotations
                     SF.Token(SyntaxKind.PartialKeyword)))
                 .WithBaseList(SF.BaseList(SF.SingletonSeparatedList<BaseTypeSyntax>(SF.SimpleBaseType(SF.IdentifierName("ISkillLambda")))));
 
+            initialSetup = namespaceName != null ? initialSetup.AddMembers(SF.NamespaceDeclaration(namespaceName).AddMembers(skillClass)) : initialSetup.AddMembers(skillClass);
+
             var pipelineInvocation = SF.InvocationExpression(
                     SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
                         SF.IdentifierName("LambdaHelper"),
                         SF.GenericName(SF.Identifier("RunLambda"),
                             SF.TypeArgumentList(
                                 SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(cls.Identifier.Text))))))
-                .WithArgumentList(SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.IdentifierName("args")))));
+                .WithArgumentList(SF.ArgumentList());
 
             var main = SF.MethodDeclaration(SF.IdentifierName(nameof(Task)), "Main")
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.StaticKeyword)))
                 .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(SF.Parameter(SF.Identifier("args")).WithType(SF.IdentifierName("string[]")))))
                 .WithExpressionBody(SF.ArrowExpressionClause(pipelineInvocation)).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
 
-            skillClass = skillClass.AddMembers(main);
+            var staticClass = SF.ClassDeclaration("Program").WithModifiers(SF.TokenList(SF.Token(SyntaxKind.StaticKeyword))).AddMembers(main);
 
             if (nsUsage != null)
             {
