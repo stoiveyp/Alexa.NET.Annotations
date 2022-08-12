@@ -57,8 +57,6 @@ namespace Alexa.NET.Annotations
 
             var initialSetup = SF.CompilationUnit().WithUsings(usings);
 
-            var namespaceName = FindNamespace(cls);
-
             var skillClass = SF.ClassDeclaration(cls.Identifier.Text)
                 .WithModifiers(SF.TokenList(
                     SF.Token(SyntaxKind.PublicKeyword),
@@ -82,12 +80,7 @@ namespace Alexa.NET.Annotations
 
             var staticClass = SF.ClassDeclaration("Program").WithModifiers(SF.TokenList(SF.Token(SyntaxKind.StaticKeyword))).AddMembers(main);
 
-            if (namespaceName != null)
-            {
-                return initialSetup.AddMembers(SF.NamespaceDeclaration(namespaceName).AddMembers(skillClass));
-            }
-
-            return initialSetup.AddMembers(skillClass);
+            return initialSetup.AddMembers(staticClass);
         }
 
         private static NameSyntax? FindNamespace(ClassDeclarationSyntax cls)

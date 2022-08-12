@@ -4,5 +4,9 @@ using Alexa.NET.Annotations.StaticCode;
 
 public partial class Example : ISkillLambda
 {
-    static Task Main(string[] args) => LambdaHelper.RunLambda<Example>(args);
+}
+
+static class Program
+{
+    static Task Main(string[] args) => LambdaHelper.RunLambda<Example>();
 }

@@ -8,29 +8,17 @@ namespace Alexa.NET.Annotations.StaticCode
 {
     public class LambdaHelper
     {
-        private static readonly MemoryStream ResponseStream = new();
         private static readonly JsonSerializer JsonSerializer = new();
 
-        public static async Task RunLambda<T>(string[] args) where T : ISkillLambda, new()
+        public static Task RunLambda<T>() where T : ISkillLambda, new()
         {
             var skillClass = new T();
-            using var bootstrap = new LambdaBootstrap(req => HandleInvocation(req, skillClass.Execute));
-            await bootstrap.RunAsync();
-        }
 
-        private static async Task<InvocationResponse> HandleInvocation(InvocationRequest invocation, Func<SkillRequest, Task<SkillResponse>> process)
-        {
-            using var jr = new JsonTextReader(new StreamReader(invocation.InputStream));
-            var input = JsonSerializer.Deserialize<SkillRequest>(jr);
+            //https://docs.aws.amazon.com/lambda/latest/dg/csharp-handler.html
 
-            var output = await process(input);
-
-            ResponseStream.SetLength(0);
-            using var jw = new JsonTextWriter(new StreamWriter(ResponseStream));
-            JsonSerializer.Serialize(jw, output);
-            ResponseStream.Position = 0;
-
-            return new InvocationResponse(ResponseStream, false);
+            return LambdaBootstrapBuilder
+                .Create<SkillRequest, SkillResponse>(skillClass.Execute,
+                    new Amazon.Lambda.Serialization.Json.JsonSerializer()).Build().RunAsync();
         }
     }
 
