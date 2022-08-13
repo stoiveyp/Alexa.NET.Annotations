@@ -101,7 +101,7 @@ namespace Alexa.NET.Annotations
         internal static string ToCodeString(this SyntaxNode token)
         {
             var sb = new StringBuilder();
-            var writer = new StringWriter(sb);
+            using var writer = new StringWriter(sb);
             token.NormalizeWhitespace().WriteTo(writer);
             return sb.ToString();
         }
