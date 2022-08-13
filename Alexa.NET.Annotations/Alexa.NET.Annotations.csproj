@@ -7,13 +7,16 @@
 	  <LangVersion>latest</LangVersion>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <PackageLicenseFile>LICENSE</PackageLicenseFile>
-	  <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+	  <PackageReleaseNotes>Initial release tidied up</PackageReleaseNotes>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
-	  <Version>1.0.0-alpha5</Version>
+	  <Version>1.0.0-alpha6</Version>
 	  <Description>Library to help make writing your first Alexa skill smaller and easier</Description>
 	  <Authors>Steven Pears</Authors>
+	  <PackageProjectUrl>https://github.com/stoiveyp/Alexa.NET.Annotations</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/stoiveyp/Alexa.NET.Annotations</RepositoryUrl>
+	  <PackageTags>alexa, lambda, attributes</PackageTags>
   </PropertyGroup>
 
 	<ItemGroup>
