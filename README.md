@@ -82,4 +82,4 @@ To make this work - when you push your code to AWS Lambda, where you'd normally 
 
 Here's an example of this using the AWS Lambda Upload screen in Visual Studio
 
-![AWS Lambda upload screen in visual studio showing the assembly handler attribute](/docs/path/to/uploadScreen.jpg?raw=true)
+![AWS Lambda upload screen in visual studio showing the assembly handler attribute](/docs/uploadScreen.jpg?raw=true)
