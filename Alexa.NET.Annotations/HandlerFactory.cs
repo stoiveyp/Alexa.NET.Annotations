@@ -1,15 +1,23 @@
-﻿using System.Linq.Expressions;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Alexa.NET.Annotations
 {
-    internal static class CommonHandlerMethods
+    internal static class HandlerFactory
     {
-        private const string WrapperPropertyName = "Wrapper";
-        private const string HandlerMethodName = "Handle";
+        public static ClassDeclarationSyntax ToPipelineHandler(this MethodDeclarationSyntax method, AttributeSyntax marker, ClassDeclarationSyntax containerClass)
+        {
+            if (marker == null) throw new ArgumentNullException(nameof(marker));
+            var info = MarkerInfo.MarkerTypeInfo[marker.MarkerName()!];
+            return SF.ClassDeclaration(method.Identifier.Text + "Handler")
+                .WithBaseList(SF.BaseList(SF.SingletonSeparatedList(info.BaseType(marker))))
+                .WithModifiers(SF.TokenList(
+                    SF.Token(SyntaxKind.PrivateKeyword)))
+                .AddWrapperField(containerClass)
+                .AddWrapperConstructor(containerClass, info.Constructor?.Invoke(marker))
+                .AddExecuteMethod(method, info);
+        }
 
         public static ClassDeclarationSyntax AddWrapperConstructor(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax wrapperClass, ConstructorInitializerSyntax? initializer)
         {
@@ -54,25 +62,8 @@ namespace Alexa.NET.Annotations
                         SF.GenericName(SF.Identifier("AlexaRequestInformation"),
                             SF.TypeArgumentList(SF.SingletonSeparatedList(SF.ParseTypeName("SkillRequest")))))
                 )))
-                .WithExpressionBody(SF.ArrowExpressionClause(WrapInTask(method,RunWrapper(method, info)))).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
+                .WithExpressionBody(SF.ArrowExpressionClause(Utility.WrapInTask(method, RunWrapper(method, info)))).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
             return skillClass.AddMembers(newMethod);
-        }
-
-        private static bool ReturnsTask(this MethodDeclarationSyntax method) =>
-            method.ReturnType is GenericNameSyntax gen && gen.Identifier.Text == "Task";
-
-        private static InvocationExpressionSyntax WrapInTask(MethodDeclarationSyntax method, InvocationExpressionSyntax expression)
-        {
-            if (method.ReturnsTask())
-            {
-                return expression;
-            }
-
-            return SF.InvocationExpression(
-                SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                    SF.IdentifierName("Task"),
-                    SF.IdentifierName("FromResult"))).WithArgumentList(
-                SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(expression))));
         }
 
         private static InvocationExpressionSyntax RunWrapper(MethodDeclarationSyntax method, MarkerInfo info)
@@ -84,9 +75,12 @@ namespace Alexa.NET.Annotations
                     SF.IdentifierName(method.Identifier.Text)),
                 SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.CastExpression(info.RequestType,
                     SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,SF.IdentifierName("information"),SF.IdentifierName("SkillRequest")),
+                        SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName("information"), SF.IdentifierName("SkillRequest")),
                         SF.IdentifierName("Request")
-                        ))))));
+                    ))))));
         }
+
+        private const string WrapperPropertyName = "Wrapper";
+        private const string HandlerMethodName = "Handle";
     }
 }

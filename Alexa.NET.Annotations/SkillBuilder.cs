@@ -28,7 +28,7 @@ namespace Alexa.NET.Annotations
 
             foreach (var cls in args)
             {
-                context.AddSource($"{cls.Identifier.Text}.skill.g.cs", PipelineBuilder.BuildSkillClasses(cls).ToCodeString());
+                context.AddSource($"{cls.Identifier.Text}.skill.g.cs", PipelineBuilder.BuildPipelineClasses(cls).ToCodeString());
 
                 if (cls.ContainsAttributeNamed(nameof(AlexaLambdaAttribute).NameOnly()))
                 {

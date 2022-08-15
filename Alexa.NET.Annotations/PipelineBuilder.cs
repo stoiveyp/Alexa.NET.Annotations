@@ -9,7 +9,7 @@ namespace Alexa.NET.Annotations
         private const string PipelineClass = "AlexaRequestPipeline";
         private const string PipelineFieldName = "_pipeline";
 
-        public static CompilationUnitSyntax BuildSkillClasses(ClassDeclarationSyntax cls)
+        public static CompilationUnitSyntax BuildPipelineClasses(ClassDeclarationSyntax cls)
         {
             var usings = SF.List(new[]
             {
@@ -43,7 +43,7 @@ namespace Alexa.NET.Annotations
         public static ClassDeclarationSyntax BuildSkill(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax cls)
         {
             var handlers = cls.Members.OfType<MethodDeclarationSyntax>()
-                .Where(MarkerHelper.HasMarkerAttribute).Select(m => MethodToPipelineClass(m, m.MarkerAttribute()!, cls));
+                .Where(MarkerHelper.HasMarkerAttribute).Select(m => m.ToPipelineHandler(m.MarkerAttribute()!, cls));
 
             return skillClass
                 .AddPipelineField()
@@ -96,19 +96,6 @@ namespace Alexa.NET.Annotations
                 .WithExpressionBody(SF.ArrowExpressionClause(invokePipeline)).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
 
             return skillClass.AddMembers(executeMethod);
-        }
-
-        private static ClassDeclarationSyntax MethodToPipelineClass(MethodDeclarationSyntax method, AttributeSyntax marker, ClassDeclarationSyntax containerClass)
-        {
-            if (marker == null) throw new ArgumentNullException(nameof(marker));
-            var info = MarkerInfo.MarkerTypeInfo[marker.MarkerName()!];
-            return SF.ClassDeclaration(method.Identifier.Text + "Handler")
-                .WithBaseList(SF.BaseList(SF.SingletonSeparatedList(info.BaseType(marker))))
-                .WithModifiers(SF.TokenList(
-                    SF.Token(SyntaxKind.PrivateKeyword)))
-                .AddWrapperField(containerClass)
-                .AddWrapperConstructor(containerClass, info.Constructor?.Invoke(marker))
-                .AddExecuteMethod(method, info);
         }
     }
 }
