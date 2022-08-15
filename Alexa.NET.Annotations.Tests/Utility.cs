@@ -11,7 +11,7 @@ namespace Alexa.NET.Annotations.Tests
 
             var compilation = CSharpCompilation.Create("Tests", new [] { tree });
 
-            var generator = new PipelineGenerator();
+            var generator = new SkillGenerator();
             GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
             driver = driver.RunGenerators(compilation);
             return Verifier.Verify(driver).UseDirectory("Snapshots");
@@ -23,7 +23,7 @@ namespace Alexa.NET.Annotations.Tests
 
             var compilation = CSharpCompilation.Create("Tests", new[] { tree });
 
-            var generator = new PipelineGenerator();
+            var generator = new SkillGenerator();
             GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
             driver = driver.RunGenerators(compilation);
             return driver.GetRunResult().Results.SelectMany(r => r.GeneratedSources).Any(s => s.HintName == name);

@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Alexa.NET.Annotations
 {
-    internal static class PipelineMarker
+    internal static class SkillMarker
     {
         public static void StaticCodeGeneration(IncrementalGeneratorPostInitializationContext obj)
         {
