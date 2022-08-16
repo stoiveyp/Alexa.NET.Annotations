@@ -11,11 +11,15 @@
   <ItemGroup>
     <Compile Remove="Examples\Combined.cs" />
     <Compile Remove="Examples\IntentExample.cs" />
+    <Compile Remove="Examples\IntentSlots.cs" />
     <Compile Remove="Examples\LaunchExample.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="Examples\Combined.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\IntentSlots.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Examples\IntentExample.cs">

@@ -17,7 +17,7 @@ namespace Alexa.NET.Annotations
         public static bool ReturnsTask(this MethodDeclarationSyntax method) =>
             method.ReturnType is GenericNameSyntax gen && gen.Identifier.Text == "Task";
 
-        public static InvocationExpressionSyntax WrapInTask(MethodDeclarationSyntax method, InvocationExpressionSyntax expression)
+        public static InvocationExpressionSyntax WrapIfAsync(this InvocationExpressionSyntax expression, MethodDeclarationSyntax method)
         {
             if (method.ReturnsTask())
             {

@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -55,29 +56,43 @@ namespace Alexa.NET.Annotations
                 : SF.GenericName("Task").WithTypeArgumentList(
                     SF.TypeArgumentList(SF.SingletonSeparatedList(method.ReturnType)));
 
+            var argumentMapping = ArgumentFactory.FromParameters(method.ParameterList.Parameters.ToArray(), info);
+
             var newMethod = SF.MethodDeclaration(returnType, HandlerMethodName)
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.OverrideKeyword)))
                 .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(
                     SF.Parameter(SF.Identifier("information")).WithType(
                         SF.GenericName(SF.Identifier("AlexaRequestInformation"),
                             SF.TypeArgumentList(SF.SingletonSeparatedList(SF.ParseTypeName("SkillRequest")))))
-                )))
-                .WithExpressionBody(SF.ArrowExpressionClause(Utility.WrapInTask(method, RunWrapper(method, info)))).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
+                )));
+
+            if (argumentMapping.InlineOnly)
+            {
+                newMethod = newMethod.WithExpressionBody(SF.ArrowExpressionClause(RunWrapper(method, argumentMapping).WrapIfAsync(method))).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
+            }
+
             return skillClass.AddMembers(newMethod);
         }
 
-        private static InvocationExpressionSyntax RunWrapper(MethodDeclarationSyntax method, MarkerInfo info)
+        private static InvocationExpressionSyntax RunWrapper(MethodDeclarationSyntax method, ParameterPrep prep)
         {
+            SeparatedSyntaxList<ArgumentSyntax> arguments = SF.SeparatedList<ArgumentSyntax>();
+
+            if (prep.Arguments.Count == 1)
+            {
+                arguments = SF.SingletonSeparatedList(SF.Argument(prep.Arguments[0].Expression));
+            }
+            else
+            {
+                arguments = SF.SeparatedList(prep.Arguments.Select(a => SF.Argument(a.Expression)));
+            }
+
             return SF.InvocationExpression(
                 SF.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SF.IdentifierName(WrapperPropertyName),
                     SF.IdentifierName(method.Identifier.Text)),
-                SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.CastExpression(info.RequestType,
-                    SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName("information"), SF.IdentifierName("SkillRequest")),
-                        SF.IdentifierName("Request")
-                    ))))));
+                SF.ArgumentList(arguments));
         }
 
         private const string WrapperPropertyName = "Wrapper";
