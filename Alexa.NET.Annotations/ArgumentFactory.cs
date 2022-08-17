@@ -27,7 +27,6 @@ internal static class ArgumentFactory
                 }));
             parameterPrep.CommonStatements.Add(SF.LocalDeclarationStatement(requestTypeAssignment));
         }
-
         return parameterPrep;
     }
 
