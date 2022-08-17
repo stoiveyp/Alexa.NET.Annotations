@@ -6,9 +6,6 @@ namespace Alexa.NET.Annotations;
 
 internal static class ArgumentFactory
 {
-    private const string HandlerInformationName = "information";
-    private const string TypedRequestObjectIdentifier = "request";
-
     public static ParameterPrep FromParameters(ParameterSyntax[] parameters, MarkerInfo info)
     {
         var parameterPrep = new ParameterPrep();
@@ -22,8 +19,8 @@ internal static class ArgumentFactory
 
         if (parameterPrep.RequiresRequest)
         {
-            var requestTypeAssignment = SF.VariableDeclaration(SF.IdentifierName("var")).WithVariables(SF.SeparatedList(new[] {
-                    SF.VariableDeclarator(SF.Identifier(TypedRequestObjectIdentifier)).WithInitializer(SF.EqualsValueClause(TypedRequest(info)))
+            var requestTypeAssignment = SF.VariableDeclaration(SF.IdentifierName(SF.Token(SyntaxKind.VarKeyword))).WithVariables(SF.SeparatedList(new[] {
+                    SF.VariableDeclarator(SF.Identifier(Strings.TypedRequestObjectIdentifier)).WithInitializer(SF.EqualsValueClause(TypedRequest(info)))
                 }));
             parameterPrep.CommonStatements.Add(SF.LocalDeclarationStatement(requestTypeAssignment));
         }
@@ -33,9 +30,9 @@ internal static class ArgumentFactory
     private static CastExpressionSyntax TypedRequest(MarkerInfo info) => SF.CastExpression(info.RequestType,
         SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
             SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                SF.IdentifierName(HandlerInformationName),
-                SF.IdentifierName("SkillRequest")),
-            SF.IdentifierName("Request")
+                SF.IdentifierName(Strings.HandlerInformationName),
+                SF.IdentifierName(Strings.Types.SkillRequest)),
+            SF.IdentifierName(Strings.RequestProperty)
         ));
 
     private static string TypeName(this ParameterSyntax parameter) => ((IdentifierNameSyntax)parameter.Type!).Identifier.Text;
@@ -44,7 +41,7 @@ internal static class ArgumentFactory
     {
         if (syntax.TypeName() == info.RequestType.Identifier.Text)
         {
-            return new ArgumentDetail(singleParam ? TypedRequest(info) : SF.IdentifierName(TypedRequestObjectIdentifier));
+            return new ArgumentDetail(singleParam ? TypedRequest(info) : SF.IdentifierName(Strings.TypedRequestObjectIdentifier));
         }
 
         //TODO: Add Analyzer warning - unable to map type for method.

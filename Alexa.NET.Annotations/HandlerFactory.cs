@@ -11,7 +11,7 @@ namespace Alexa.NET.Annotations
         {
             if (marker == null) throw new ArgumentNullException(nameof(marker));
             var info = MarkerInfo.MarkerTypeInfo[marker.MarkerName()!];
-            return SF.ClassDeclaration(method.Identifier.Text + "Handler")
+            return SF.ClassDeclaration(method.Identifier.Text + Strings.HandlerSuffix)
                 .WithBaseList(SF.BaseList(SF.SingletonSeparatedList(info.BaseType(marker))))
                 .WithModifiers(SF.TokenList(
                     SF.Token(SyntaxKind.PrivateKeyword)))
@@ -22,14 +22,14 @@ namespace Alexa.NET.Annotations
 
         public static ClassDeclarationSyntax AddWrapperConstructor(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax wrapperClass, ConstructorInitializerSyntax? initializer)
         {
-            var handlerParameter = SF.Parameter(SF.Identifier("wrapper"))
+            var handlerParameter = SF.Parameter(SF.Identifier(Strings.WrapperVarName))
                 .WithType(SF.IdentifierName(wrapperClass.Identifier.Text));
 
             var constructor = SF.ConstructorDeclaration(skillClass.Identifier.Text)
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.InternalKeyword)))
                 .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(handlerParameter)))
                 .WithBody(SF.Block(SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
-                    SF.IdentifierName(WrapperPropertyName), SF.IdentifierName("wrapper")))));
+                    SF.IdentifierName(Strings.WrapperPropertyName), SF.IdentifierName(Strings.WrapperVarName)))));
 
             if (initializer != null)
             {
@@ -43,7 +43,7 @@ namespace Alexa.NET.Annotations
             ClassDeclarationSyntax wrapperClass)
         {
             var handlerField = SF
-                .PropertyDeclaration(SF.IdentifierName(wrapperClass.Identifier.Text), WrapperPropertyName)
+                .PropertyDeclaration(SF.IdentifierName(wrapperClass.Identifier.Text), Strings.WrapperPropertyName)
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PrivateKeyword)))
                 .WithAccessorList(SF.AccessorList(SF.SingletonList(SF.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken)))));
             return skillClass.AddMembers(handlerField);
@@ -53,15 +53,15 @@ namespace Alexa.NET.Annotations
         {
             var returnType = method.ReturnsTask()
                 ? method.ReturnType
-                : SF.GenericName("Task").WithTypeArgumentList(
+                : SF.GenericName(Strings.TypeTask).WithTypeArgumentList(
                     SF.TypeArgumentList(SF.SingletonSeparatedList(method.ReturnType)));
 
-            var newMethod = SF.MethodDeclaration(returnType, HandlerMethodName)
+            var newMethod = SF.MethodDeclaration(returnType, Strings.HandlerMethodName)
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.OverrideKeyword)))
                 .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(
-                    SF.Parameter(SF.Identifier("information")).WithType(
-                        SF.GenericName(SF.Identifier("AlexaRequestInformation"),
-                            SF.TypeArgumentList(SF.SingletonSeparatedList(SF.ParseTypeName("SkillRequest")))))
+                    SF.Parameter(SF.Identifier(Strings.HandlerInformationPropertyName)).WithType(
+                        SF.GenericName(SF.Identifier(Strings.TypeHandlerInformation),
+                            SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillRequest)))))
                 )));
 
             var argumentMapping = ArgumentFactory.FromParameters(method.ParameterList.Parameters.ToArray(), info);
@@ -99,12 +99,9 @@ namespace Alexa.NET.Annotations
             return SF.InvocationExpression(
                 SF.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    SF.IdentifierName(WrapperPropertyName),
+                    SF.IdentifierName(Strings.WrapperPropertyName),
                     SF.IdentifierName(method.Identifier.Text)),
                 SF.ArgumentList(arguments));
         }
-
-        private const string WrapperPropertyName = "Wrapper";
-        private const string HandlerMethodName = "Handle";
     }
 }
