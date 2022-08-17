@@ -7,6 +7,7 @@ namespace Alexa.NET.Annotations;
 internal static class ArgumentFactory
 {
     private const string HandlerInformationName = "information";
+    private const string TypedRequestObjectIdentifier = "request";
 
     public static ParameterPrep FromParameters(ParameterSyntax[] parameters, MarkerInfo info)
     {
@@ -17,11 +18,14 @@ internal static class ArgumentFactory
             return parameterPrep;
         }
 
-        parameterPrep.Arguments.AddRange(parameters.Select(p => p.ToArgumentDetail(info, parameters.Length > 1)).Where(ad => ad != null));
+        parameterPrep.Arguments.AddRange(parameters.Select(p => p.ToArgumentDetail(info, parameters.Length > 1)).Where(ad => ad != null)!);
 
         if (parameterPrep.RequiresRequest)
         {
-            parameterPrep.CommonStatements.Add(SF.ExpressionStatement(TypedRequest(info)));
+            var requestTypeAssignment = SF.VariableDeclaration(SF.IdentifierName("var")).WithVariables(SF.SeparatedList(new[] {
+                    SF.VariableDeclarator(SF.Identifier(TypedRequestObjectIdentifier)).WithInitializer(SF.EqualsValueClause(TypedRequest(info)))
+                }));
+            parameterPrep.CommonStatements.Add(SF.LocalDeclarationStatement(requestTypeAssignment));
         }
 
         return parameterPrep;
@@ -41,9 +45,10 @@ internal static class ArgumentFactory
     {
         if (syntax.TypeName() == info.RequestType.Identifier.Text)
         {
-            return new ArgumentDetail { Expression = SF.IdentifierName() };
+            return new ArgumentDetail(singleParam ? TypedRequest(info) : SF.IdentifierName(TypedRequestObjectIdentifier));
         }
 
+        //TODO: Add Analyzer warning - unable to map type for method.
         return null;
     }
 }
@@ -58,6 +63,16 @@ internal class ParameterPrep
 
 internal class ArgumentDetail
 {
+    public ArgumentDetail(ExpressionSyntax expression)
+    {
+        Expression = expression;
+    }
+
+    public ArgumentDetail(ExpressionSyntax expression, params StatementSyntax[] setup) : this(expression)
+    {
+        ArgumentSetup.AddRange(setup);
+    }
+
     public List<StatementSyntax> ArgumentSetup = new();
     public ExpressionSyntax Expression { get; set; }
 
