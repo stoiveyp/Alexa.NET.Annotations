@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Compile Remove="Examples\Combined.cs" />
+    <Compile Remove="Examples\EmptyLaunch.cs" />
     <Compile Remove="Examples\IntentExample.cs" />
     <Compile Remove="Examples\IntentSlots.cs" />
     <Compile Remove="Examples\LaunchExample.cs" />
@@ -23,6 +24,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Examples\IntentExample.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\EmptyLaunch.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Examples\LaunchExample.cs">

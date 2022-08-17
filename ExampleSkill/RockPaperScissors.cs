@@ -1,6 +1,7 @@
 ﻿using Alexa.NET;
 using Alexa.NET.Annotations.Markers;
 using Alexa.NET.Request.Type;
+using Alexa.NET.RequestHandlers;
 using Alexa.NET.Response;
 
 namespace ExampleSkill
@@ -10,7 +11,7 @@ namespace ExampleSkill
     public partial class RockPaperScissors
     {
         [Launch]
-        public SkillResponse Launch(LaunchRequest intent)
+        public SkillResponse Launch()
         {
             return ResponseBuilder.Ask("What's your move? Rock, Paper or scissors?", new("What's your move?"));
         }
@@ -22,6 +23,6 @@ namespace ExampleSkill
         }
 
         [Intent(BuiltInIntent.Help)]
-        public SkillResponse Help(IntentRequest _) => ResponseBuilder.Empty();
+        public SkillResponse Help(AlexaRequestInformation information) => ResponseBuilder.Empty();
     }
 }

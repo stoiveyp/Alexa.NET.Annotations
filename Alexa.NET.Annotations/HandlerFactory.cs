@@ -56,8 +56,6 @@ namespace Alexa.NET.Annotations
                 : SF.GenericName("Task").WithTypeArgumentList(
                     SF.TypeArgumentList(SF.SingletonSeparatedList(method.ReturnType)));
 
-            var argumentMapping = ArgumentFactory.FromParameters(method.ParameterList.Parameters.ToArray(), info);
-
             var newMethod = SF.MethodDeclaration(returnType, HandlerMethodName)
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.OverrideKeyword)))
                 .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(
@@ -66,9 +64,20 @@ namespace Alexa.NET.Annotations
                             SF.TypeArgumentList(SF.SingletonSeparatedList(SF.ParseTypeName("SkillRequest")))))
                 )));
 
+            var argumentMapping = ArgumentFactory.FromParameters(method.ParameterList.Parameters.ToArray(), info);
+
+            var wrapperExpression = RunWrapper(method, argumentMapping);
+
             if (argumentMapping.InlineOnly)
             {
-                newMethod = newMethod.WithExpressionBody(SF.ArrowExpressionClause(RunWrapper(method, argumentMapping).WrapIfAsync(method))).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
+                newMethod = newMethod.WithExpressionBody(SF.ArrowExpressionClause(wrapperExpression.WrapIfNotAsync(method))).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
+            }
+            else
+            {
+                newMethod = newMethod.WithBody(SF.Block(
+                    argumentMapping.CommonStatements
+                    .Concat(argumentMapping.Arguments.SelectMany(a => a.ArgumentSetup)
+                        .Concat(new []{SF.ReturnStatement(wrapperExpression)}))));
             }
 
             return skillClass.AddMembers(newMethod);
