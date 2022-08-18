@@ -7,6 +7,7 @@ namespace Alexa.NET.Annotations
 {
     public static class Strings
     {
+
         public const string HandlerInformationName = "information";
         public const string TypedRequestObjectIdentifier = "request";
         public const string WrapperVarName = "wrapper";
