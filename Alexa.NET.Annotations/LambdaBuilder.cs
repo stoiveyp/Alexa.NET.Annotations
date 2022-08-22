@@ -48,7 +48,7 @@ namespace Alexa.NET.Annotations
         {
             return SF.InvocationExpression(
                     SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        SF.IdentifierName(Strings.TypeLambdaHelper),
+                        SF.IdentifierName(Strings.Types.LambdaHelper),
                         SF.GenericName(SF.Identifier(Strings.RunLambdaMethodName),
                             SF.TypeArgumentList(
                                 SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(cls.Identifier.Text))))))

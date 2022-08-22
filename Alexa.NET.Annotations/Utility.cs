@@ -11,11 +11,11 @@ namespace Alexa.NET.Annotations
                 SF.ArgumentList(), null));
 
         public static NameSyntax? BuildName(params string[] pieces) => pieces.Aggregate<string?, NameSyntax?>(null, (current, piece) => current == null
-            ? SF.IdentifierName(piece)
-            : SF.QualifiedName(current, SF.IdentifierName(piece)));
+            ? SF.IdentifierName(piece!)
+            : SF.QualifiedName(current, SF.IdentifierName(piece!)));
 
         public static bool ReturnsTask(this MethodDeclarationSyntax method) =>
-            method.ReturnType is GenericNameSyntax gen && gen.Identifier.Text == "Task";
+            method.ReturnType is GenericNameSyntax { Identifier.Text: "Task" };
 
         public static InvocationExpressionSyntax WrapIfNotAsync(this InvocationExpressionSyntax expression, MethodDeclarationSyntax method)
         {

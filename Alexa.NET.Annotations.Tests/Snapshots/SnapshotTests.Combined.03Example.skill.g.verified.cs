@@ -25,7 +25,11 @@ public partial class Example
             Wrapper = wrapper;
         }
 
-        public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information) => Task.FromResult(Wrapper.Launch(request));
+        public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information)
+        {
+            var request = (LaunchRequest)information.SkillRequest.Request;
+            return Wrapper.Launch(request);
+        }
     }
 
     private class FallbackHandler : IntentNameRequestHandler

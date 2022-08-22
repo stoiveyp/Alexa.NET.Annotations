@@ -26,19 +26,22 @@ namespace Alexa.NET.Annotations
                 context.AddSource("AlexaSkillLambdaHelper.g.cs", reader.ReadToEnd());
             }
 
-            foreach (var cls in args)
+            foreach (var cls in args.Where(a => a != null))
             {
-                context.AddSource($"{cls.Identifier.Text}.skill.g.cs", PipelineBuilder.BuildPipelineClasses(cls).ToCodeString());
+                context.AddSource($"{cls!.Identifier.Text}.skill.g.cs",
+                    PipelineBuilder.BuildPipelineClasses(cls, context.ReportDiagnostic).ToCodeString());
 
                 if (cls.ContainsAttributeNamed(nameof(AlexaLambdaAttribute).NameOnly()))
                 {
                     AddHelper();
-                    context.AddSource($"{cls.Identifier.Text}.lambda.g.cs", LambdaBuilder.BuildLambdaClass(cls).ToCodeString());
+                    context.AddSource($"{cls.Identifier.Text}.lambda.g.cs",
+                        LambdaBuilder.BuildLambdaClass(cls).ToCodeString());
                 }
             }
+
         }
 
-        public static string NameOnly(this string fullAttribute) => fullAttribute.Substring(0,fullAttribute.Length-9);
+        public static string NameOnly(this string fullAttribute) => fullAttribute.Substring(0, fullAttribute.Length - 9);
 
         internal static string ToCodeString(this SyntaxNode token)
         {

@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -6,7 +7,7 @@ namespace Alexa.NET.Annotations
 {
     internal static class PipelineBuilder
     {
-        public static CompilationUnitSyntax BuildPipelineClasses(ClassDeclarationSyntax cls)
+        public static CompilationUnitSyntax BuildPipelineClasses(ClassDeclarationSyntax cls, Action<Diagnostic> reportDiagnostic)
         {
             var usings = SF.List(new[]
             {
@@ -29,18 +30,20 @@ namespace Alexa.NET.Annotations
                     SF.Token(SyntaxKind.PartialKeyword)));
 
 
+            var skill = skillClass.BuildSkill(cls, reportDiagnostic);
+
             if (nsName != null)
             {
-                return initialSetup.AddMembers(SF.NamespaceDeclaration(nsName).AddMembers(skillClass.BuildSkill(cls)));
+                return initialSetup.AddMembers(SF.NamespaceDeclaration(nsName).AddMembers(skill));
             }
 
-            return initialSetup.AddMembers(skillClass.BuildSkill(cls));
+            return initialSetup.AddMembers(skill);
         }
 
-        public static ClassDeclarationSyntax BuildSkill(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax cls)
+        public static ClassDeclarationSyntax BuildSkill(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax cls, Action<Diagnostic> reportDiagnostic)
         {
             var handlers = cls.Members.OfType<MethodDeclarationSyntax>()
-                .Where(MarkerHelper.HasMarkerAttribute).Select(m => m.ToPipelineHandler(m.MarkerAttribute()!, cls));
+                .Where(MarkerHelper.HasMarkerAttribute).Select(m => m.ToPipelineHandler(m.MarkerAttribute()!, cls, reportDiagnostic));
 
             return skillClass
                 .AddPipelineField()

@@ -10,7 +10,7 @@ namespace TestyMcTestFace;
 public partial class Example
 {
     [Intent("PlayAGame")]
-    public async Task<SkillResponse> PlayAGame(string move1, string move2)
+    public async Task<SkillResponse> PlayAGame(string move1, Alexa.NET.Request.Slot move2)
     {
         return ResponseBuilder.Tell("you win");
     }

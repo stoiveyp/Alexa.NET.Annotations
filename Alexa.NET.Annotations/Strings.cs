@@ -9,21 +9,15 @@ namespace Alexa.NET.Annotations
     {
 
         public const string HandlerInformationName = "information";
-        public const string TypedRequestObjectIdentifier = "request";
         public const string WrapperVarName = "wrapper";
         public const string WrapperPropertyName = "Wrapper";
         public const string HandlerMethodName = "Handle";
-        public const string HandlerInformationPropertyName = "information";
         public const string MainMethod = "Main";
         public const string ArgsVarName = "args";
         public const string ProgramClassName = "Program";
         public const string RunLambdaMethodName = "RunLambda";
 
         public const string HandlerSuffix = "Handler";
-
-        public const string TypeTask = "Task";
-        public const string TypeHandlerInformation = "AlexaRequestInformation";
-        public const string TypeLambdaHelper = "LambdaHelper";
 
         public const string RequestProperty = "Request";
 
@@ -34,6 +28,12 @@ namespace Alexa.NET.Annotations
             public const string InitializeMethod = "Initialize";
             public const string ProcessMethod = "Process";
             public const string ExecuteMethod = "Execute";
+            public const string HandlerInformationProperty = "information";
+            public const string IntentProperty = "Intent";
+            public const string TypedRequestObject = "request";
+            public const string SlotValueProperty = "SlotValue";
+            public const string SlotValueValueProperty = "Value";
+            public const string SlotsProperty = "Slots";
         }
 
         public static class Types
@@ -44,6 +44,15 @@ namespace Alexa.NET.Annotations
             public const string SkillRequest = nameof(SkillRequest);
             public const string SkillResponse = nameof(SkillResponse);
             public const string RequestHandlerInterface = nameof(IAlexaRequestHandler);
+            public const string AlexaRequestInformation = nameof(AlexaRequestInformation);
+            public const string Task = "Task";
+            public const string HandlerInformation = "AlexaRequestInformation";
+            public const string LambdaHelper = nameof(LambdaHelper);
+            public const string Var = "var";
+            public const string IntentRequest = nameof(IntentRequest);
+            public const string String = "string";
+            public const string Slot = "Slot";
+            public const string FullSlot = "Alexa.NET.Request.Slot";
         }
 
         public static class Usings

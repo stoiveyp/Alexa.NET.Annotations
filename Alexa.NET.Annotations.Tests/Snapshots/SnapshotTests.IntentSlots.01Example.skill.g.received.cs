@@ -27,7 +27,12 @@ namespace TestyMcTestFace
                 Wrapper = wrapper;
             }
 
-            public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information) => Wrapper.PlayAGame((IntentRequest)information.SkillRequest.Request);
+            public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information)
+            {
+                var request = (IntentRequest)information.SkillRequest.Request;
+                var move1 = request.Intent.Slots["move1"].SlotValue.Value;
+                return Wrapper.PlayAGame(move1);
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Alexa.NET;
 using Alexa.NET.Annotations.Markers;
+using Alexa.NET.Request;
 using Alexa.NET.Request.Type;
 using Alexa.NET.RequestHandlers;
 using Alexa.NET.Response;
@@ -17,12 +18,12 @@ namespace ExampleSkill
         }
 
         [Intent("MakeMyMove")]
-        public async Task<SkillResponse> PlayAGame(IntentRequest intentRequest)
+        public async Task<SkillResponse> PlayAGame(IntentRequest intentRequest, string move1)
         {
             return ResponseBuilder.Tell("You Win", null);
         }
 
         [Intent(BuiltInIntent.Help)]
-        public SkillResponse Help(AlexaRequestInformation information) => ResponseBuilder.Empty();
+        public SkillResponse Help(AlexaRequestInformation<SkillRequest> information) => ResponseBuilder.Empty();
     }
 }
