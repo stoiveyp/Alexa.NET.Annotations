@@ -53,11 +53,14 @@ public Task<SkillResponse> Launch(LaunchRequest intent);
 
 *Intent(IntentName)*
 
-The intent attribute wires up to a specific intent, named in the attribute argument. This currently requires one of these two signatures
+The intent attribute wires up to a specific intent, named in the attribute argument.
+If the signature contains string or Slot parameters, they are mapped to intent slots.
 
+Example signatures
 ```csharp
 public async Task<SkillResponse> Intent(IntentRequest intentRequest);
 public SkillResponse Intent(IntentRequest intentRequest);
+public SkillResponse Intent(string slotOne, Slot slotTwo);
 ```
 
 ## Wiring up an AWS Lambda

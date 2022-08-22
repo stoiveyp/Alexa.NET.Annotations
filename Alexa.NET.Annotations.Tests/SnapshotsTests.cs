@@ -20,6 +20,13 @@ public class SnapshotTests
     }
 
     [Fact]
+    public Task IntentSlots()
+    {
+        var sampleCode = System.IO.File.ReadAllText("Examples/IntentSlots.cs");
+        return Utility.Verify(sampleCode);
+    }
+
+    [Fact]
     public Task Combined()
     {
         var sampleCode = System.IO.File.ReadAllText("Examples/Combined.cs");
