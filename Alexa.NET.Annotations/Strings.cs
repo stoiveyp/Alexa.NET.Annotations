@@ -57,14 +57,14 @@ namespace Alexa.NET.Annotations
 
         public static class Usings
         {
-            public static NameSyntax System() => Utility.BuildName("System")!;
-            public static NameSyntax StaticCode() => Utility.BuildName("Alexa", "NET", "Annotations", "StaticCode")!;
-            public static NameSyntax AlexaNetRequest() => Utility.BuildName("Alexa", "NET", "Request")!;
-            public static NameSyntax AlexaNetResponse() => Utility.BuildName("Alexa", "NET", "Response")!;
-            public static NameSyntax AlexaNetResponseType() => Utility.BuildName("Alexa", "NET", "Request", "Type")!;
-            public static NameSyntax RequestHandlers() => Utility.BuildName("Alexa", "NET", "RequestHandlers")!;
-            public static NameSyntax RequestHandlerTypes() => Utility.BuildName("Alexa", "NET", "RequestHandlers", "Handlers")!;
-            public static NameSyntax Tasks() => Utility.BuildName("System", "Threading", "Tasks")!;
+            public static NameSyntax System() => NamespaceHelper.Build("System")!;
+            public static NameSyntax StaticCode() => NamespaceHelper.Build("Alexa", "NET", "Annotations", "StaticCode")!;
+            public static NameSyntax AlexaNetRequest() => NamespaceHelper.Build("Alexa", "NET", "Request")!;
+            public static NameSyntax AlexaNetResponse() => NamespaceHelper.Build("Alexa", "NET", "Response")!;
+            public static NameSyntax AlexaNetResponseType() => NamespaceHelper.Build("Alexa", "NET", "Request", "Type")!;
+            public static NameSyntax RequestHandlers() => NamespaceHelper.Build("Alexa", "NET", "RequestHandlers")!;
+            public static NameSyntax RequestHandlerTypes() => NamespaceHelper.Build("Alexa", "NET", "RequestHandlers", "Handlers")!;
+            public static NameSyntax Tasks() => NamespaceHelper.Build("System", "Threading", "Tasks")!;
         }
     }
 }

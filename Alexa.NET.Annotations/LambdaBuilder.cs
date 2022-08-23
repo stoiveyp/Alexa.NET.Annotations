@@ -15,7 +15,7 @@ namespace Alexa.NET.Annotations
                 SF.UsingDirective(Strings.Usings.StaticCode())
             }.Distinct());
 
-            var namespaceName = Utility.FindNamespace(cls);
+            var namespaceName = NamespaceHelper.Find(cls);
             if (namespaceName != null)
             {
                 usings = usings.Add(SF.UsingDirective(namespaceName));

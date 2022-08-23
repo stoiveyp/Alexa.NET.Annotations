@@ -22,7 +22,7 @@ namespace Alexa.NET.Annotations
 
             var initialSetup = SF.CompilationUnit().WithUsings(usings);
 
-            var nsName = Utility.FindNamespace(cls);
+            var nsName = NamespaceHelper.Find(cls);
 
             var skillClass = SF.ClassDeclaration(cls.Identifier.Text)
                 .WithModifiers(SF.TokenList(
