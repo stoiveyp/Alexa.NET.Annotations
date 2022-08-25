@@ -7,8 +7,13 @@ namespace Alexa.NET.Annotations
 {
     internal static class HandlerFactory
     {
-        public static ClassDeclarationSyntax ToPipelineHandler(this MethodDeclarationSyntax method, AttributeSyntax marker, ClassDeclarationSyntax containerClass, Action<Diagnostic> reportDiagnostic)
+        public static ClassDeclarationSyntax? ToPipelineHandler(this MethodDeclarationSyntax method, AttributeSyntax marker, ClassDeclarationSyntax containerClass, Action<Diagnostic> reportDiagnostic)
         {
+            if (!AssertReturnType(method, reportDiagnostic))
+            {
+                return null;
+            }
+
             if (marker == null) throw new ArgumentNullException(nameof(marker));
             var info = MarkerInfo.MarkerTypeInfo[marker.MarkerName()!];
             return SF.ClassDeclaration(method.Identifier.Text + Strings.HandlerSuffix)
@@ -18,6 +23,24 @@ namespace Alexa.NET.Annotations
                 .AddWrapperField(containerClass)
                 .AddWrapperConstructor(containerClass, info.Constructor?.Invoke(marker))
                 .AddExecuteMethod(method, info, reportDiagnostic);
+        }
+
+        private static bool AssertReturnType(MethodDeclarationSyntax method, Action<Diagnostic> reportDiagnostic)
+        {
+            var returnType = method.ReturnType;
+
+            if (returnType is GenericNameSyntax { Identifier.Text: Strings.Types.Task } gen)
+            {
+                returnType = gen.TypeArgumentList.Arguments.First();
+            }
+
+            if (returnType is IdentifierNameSyntax { Identifier.Text: Strings.Types.SkillResponse or Strings.Types.FullSkillResponse })
+            {
+                return true;
+            }
+
+            reportDiagnostic(Diagnostic.Create(Rules.InvalidReturnTypeRule,method.GetLocation(),method.Identifier.Text));
+            return false;
         }
 
         public static ClassDeclarationSyntax AddWrapperConstructor(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax wrapperClass, ConstructorInitializerSyntax? initializer)
@@ -65,7 +88,7 @@ namespace Alexa.NET.Annotations
                             SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillRequest)))))
                 )));
 
-            var argumentMapping = method.FromParameters( info, reportDiagnostic);
+            var argumentMapping = method.FromParameters(info, reportDiagnostic);
 
             var wrapperExpression = RunWrapper(method, argumentMapping);
 
@@ -78,7 +101,7 @@ namespace Alexa.NET.Annotations
                 newMethod = newMethod.WithBody(SF.Block(
                     argumentMapping.CommonStatements
                     .Concat(argumentMapping.Arguments.SelectMany(a => a.ArgumentSetup)
-                        .Concat(new []{SF.ReturnStatement(wrapperExpression)}))));
+                        .Concat(new[] { SF.ReturnStatement(wrapperExpression) }))));
             }
 
             return skillClass.AddMembers(newMethod);

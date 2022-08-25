@@ -39,4 +39,11 @@ public class SnapshotTests
         var sampleCode = System.IO.File.ReadAllText("Examples/Combined.cs");
         Assert.True(Utility.HasSource(sampleCode, "AlexaSkillLambdaHelper.g.cs"));
     }
+
+    [Fact]
+    public Task InvalidReturnTypeCheck()
+    {
+        var sampleCode = System.IO.File.ReadAllText("Examples/InvalidReturnType.cs");
+        return Utility.Verify(sampleCode);
+    }
 }

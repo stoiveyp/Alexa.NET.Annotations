@@ -43,12 +43,13 @@ namespace Alexa.NET.Annotations
         public static ClassDeclarationSyntax BuildSkill(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax cls, Action<Diagnostic> reportDiagnostic)
         {
             var handlers = cls.Members.OfType<MethodDeclarationSyntax>()
-                .Where(MarkerHelper.HasMarkerAttribute).Select(m => m.ToPipelineHandler(m.MarkerAttribute()!, cls, reportDiagnostic));
+                .Where(MarkerHelper.HasMarkerAttribute).Select(m => m.ToPipelineHandler(m.MarkerAttribute()!, cls, reportDiagnostic))
+                .Where(c => c != null);
 
             return skillClass
                 .AddPipelineField()
                 .AddExecuteMethod()
-                .AddInitialization(handlers);
+                .AddInitialization(handlers!);
 
         }
 

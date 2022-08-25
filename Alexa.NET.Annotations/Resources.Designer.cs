@@ -86,5 +86,32 @@ namespace Alexa.NET.Annotations {
                 return ResourceManager.GetString("InvalidParameterTitle", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Skill methods must have a return type of either SkillResponse or Task&lt;SkillResponse&gt;..
+        /// </summary>
+        internal static string InvalidReturnTypeDescription {
+            get {
+                return ResourceManager.GetString("InvalidReturnTypeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method {0} is not returning a SkillResponse object.
+        /// </summary>
+        internal static string InvalidReturnTypeMessageFormat {
+            get {
+                return ResourceManager.GetString("InvalidReturnTypeMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid return type.
+        /// </summary>
+        internal static string InvalidReturnTypeTitle {
+            get {
+                return ResourceManager.GetString("InvalidReturnTypeTitle", resourceCulture);
+            }
+        }
     }
 }

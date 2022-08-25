@@ -43,6 +43,7 @@ namespace Alexa.NET.Annotations
             public const string PipelineClass = nameof(AlexaRequestPipeline);
             public const string SkillRequest = nameof(SkillRequest);
             public const string SkillResponse = nameof(SkillResponse);
+            public const string FullSkillResponse = "Alexa.NET.Response.SkillResponse";
             public const string RequestHandlerInterface = nameof(IAlexaRequestHandler);
             public const string AlexaRequestInformation = nameof(AlexaRequestInformation);
             public const string Task = "Task";

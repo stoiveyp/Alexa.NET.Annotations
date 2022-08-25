@@ -6,3 +6,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 AlexaSkillInvalidParameter | AlexaSkill | Error | Rules
+AlexaSkillInvalidReturnType | AlexaSkill | Error | Rules

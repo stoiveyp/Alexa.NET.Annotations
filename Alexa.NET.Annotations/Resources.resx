@@ -126,4 +126,13 @@
   <data name="InvalidParameterTitle" xml:space="preserve">
     <value>Invalid parameter in method signature</value>
   </data>
+  <data name="InvalidReturnTypeDescription" xml:space="preserve">
+    <value>Skill methods must have a return type of either SkillResponse or Task&lt;SkillResponse&gt;.</value>
+  </data>
+  <data name="InvalidReturnTypeMessageFormat" xml:space="preserve">
+    <value>Method {0} is not returning a SkillResponse object</value>
+  </data>
+  <data name="InvalidReturnTypeTitle" xml:space="preserve">
+    <value>Invalid return type</value>
+  </data>
 </root>
