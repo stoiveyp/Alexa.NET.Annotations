@@ -6,7 +6,7 @@ using Alexa.NET.Request.Type;
 using Alexa.NET.RequestHandlers;
 using Alexa.NET.RequestHandlers.Handlers;
 using System.Threading.Tasks;
-using System.Threading.Tasks;
+using Alexa.NET.RequestHandlers.Interceptors;
 
 public partial class Example
 {
@@ -14,6 +14,6 @@ public partial class Example
     public virtual Task<SkillResponse> Execute(SkillRequest skillRequest) => _pipeline.Process(skillRequest);
     public void Initialize()
     {
-        _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{});
+        _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{}, null, new IAlexaRequestInterceptor<SkillRequest>[]{new Before1Handler(this), new After1Handler(this), new After2Handler(this), new Before2Handler(this)}, null);
     }
 }

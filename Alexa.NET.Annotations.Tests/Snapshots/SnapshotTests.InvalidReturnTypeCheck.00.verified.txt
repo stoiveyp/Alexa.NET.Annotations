@@ -1,20 +1,7 @@
 ﻿{
   Diagnostics: [
     {
-      Id: AlexaSkillInvalidReturnType,
-      Title: Invalid return type,
-      Severity: Error,
-      WarningLevel: 0,
-      Location: : (8,4)-(12,5),
-      Description: Skill methods must have a return type of either SkillResponse or Task<SkillResponse>.,
-      HelpLink: ,
-      MessageFormat: Method {0} is not returning a SkillResponse object,
-      Message: Method Launch is not returning a SkillResponse object,
-      Category: AlexaSkill,
-      CustomTags: []
-    },
-    {
-      Id: AlexaSkillInvalidReturnType,
+      Id: AlexaSkillInvalidHandlerReturnType,
       Title: Invalid return type,
       Severity: Error,
       WarningLevel: 0,

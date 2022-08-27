@@ -15,14 +15,18 @@ public static class MarkerHelper
     internal static string? MarkerName(this AttributeSyntax attribute) =>
         attribute.Name is IdentifierNameSyntax id ? id.Identifier.Text : null;
 
-    internal static AttributeSyntax? MarkerAttribute(this MethodDeclarationSyntax method)
+    internal static AttributeSyntax? HandlerAttribute(this MethodDeclarationSyntax method)
     {
         return method.AttributeLists.SelectMany(a => a.Attributes)
-            .FirstOrDefault(a => MarkerInfo.List.Contains(a.MarkerName()));
+            .FirstOrDefault(a => HandlerMarkerInfo.Info.Keys.Contains(a.MarkerName()));
     }
 
-    internal static bool HasMarkerAttribute(this MethodDeclarationSyntax method)
+    internal static AttributeSyntax? InterceptorAttribute(this MethodDeclarationSyntax method)
     {
-        return MarkerAttribute(method) != default;
+        return method.AttributeLists.SelectMany(a => a.Attributes)
+            .FirstOrDefault(a => InterceptorMarkerInfo.Info.Keys.Contains(a.MarkerName()));
     }
+
+    internal static bool HasHandlerAttribute(this MethodDeclarationSyntax method) => HandlerAttribute(method) != default;
+    internal static bool HasInterceptorAttribute(this MethodDeclarationSyntax method) => InterceptorAttribute(method) != default;
 }

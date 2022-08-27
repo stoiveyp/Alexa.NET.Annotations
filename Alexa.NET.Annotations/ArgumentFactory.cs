@@ -7,7 +7,7 @@ namespace Alexa.NET.Annotations;
 
 internal static class ArgumentFactory
 {
-    public static ParameterPrep FromParameters(this MethodDeclarationSyntax method, MarkerInfo info,
+    public static ParameterPrep FromHandlerParameters(this MethodDeclarationSyntax method, HandlerMarkerInfo info,
         Action<Diagnostic> reportDiagnostic)
     {
         var parameters = method.ParameterList.Parameters.ToArray();
@@ -18,19 +18,38 @@ internal static class ArgumentFactory
             return parameterPrep;
         }
 
-        parameterPrep.Arguments.AddRange(parameters.Select(p => p.ToArgumentDetail(method.Identifier.Text,info, parameters.Length == 1, reportDiagnostic)).Where(ad => ad != null)!);
+        parameterPrep.Arguments.AddRange(parameters.Select(p => p.ToHandlerArgumentDetail(method.Identifier.Text,info, parameters.Length == 1, reportDiagnostic)).Where(ad => ad != null)!);
 
         if (parameterPrep.RequiresRequest)
         {
             var requestTypeAssignment = SF.VariableDeclaration(SF.IdentifierName(Strings.Types.Var)).WithVariables(SF.SeparatedList(new[] {
-                    SF.VariableDeclarator(SF.Identifier(Strings.Names.TypedRequestObject)).WithInitializer(SF.EqualsValueClause(TypedRequest(info)))
+                    SF.VariableDeclarator(SF.Identifier(Strings.Names.TypedRequestObject)).WithInitializer(SF.EqualsValueClause(TypedRequest(info.RequestType)))
                 }));
             parameterPrep.CommonStatements.Add(SF.LocalDeclarationStatement(requestTypeAssignment));
         }
         return parameterPrep;
     }
 
-    private static CastExpressionSyntax TypedRequest(MarkerInfo info) => SF.CastExpression(info.RequestType,
+    public static ParameterPrep FromInterceptorParameters(this MethodDeclarationSyntax method, InterceptorMarkerInfo info,
+        Action<Diagnostic> reportDiagnostic)
+    {
+        var parameters = method.ParameterList.Parameters.ToArray();
+        var parameterPrep = new ParameterPrep();
+
+        if (!parameters.Any())
+        {
+            return parameterPrep;
+        }
+
+        parameterPrep.Arguments.AddRange(parameters.Select(p => p.ToInterceptorArgumentDetail(method.Identifier.Text, info,  reportDiagnostic)).Where(ad => ad != null)!);
+
+        return parameterPrep;
+    }
+
+    internal static bool HasNextParameter(this MethodDeclarationSyntax method) => method.ParameterList.Parameters.Any(p => p.TypeName() == Strings.Types.NextDelegate);
+    
+
+    private static CastExpressionSyntax TypedRequest(IdentifierNameSyntax requestType) => SF.CastExpression(requestType,
         SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
             SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
                 SF.IdentifierName(Strings.HandlerInformationName),
@@ -101,7 +120,31 @@ internal static class ArgumentFactory
         return false;
     }
 
-    private static ArgumentDetail? ToArgumentDetail(this ParameterSyntax syntax, string methodName, MarkerInfo info, bool singleParam,
+    private static ArgumentDetail? ToInterceptorArgumentDetail(this ParameterSyntax syntax, string methodName,
+        InterceptorMarkerInfo info, Action<Diagnostic> reportDiagnostic)
+    {
+        var typeName = syntax.TypeName();
+
+        if (typeName == Strings.Types.AlexaRequestInformation)
+        {
+            return new ArgumentDetail(SF.IdentifierName(Strings.Names.HandlerInformationProperty));
+        }
+
+        if (typeName == Strings.Types.NextDelegate)
+        {
+            return new ArgumentDetail(SF.IdentifierName(Strings.Names.NextCallProperty));
+        }
+
+        if (info.CanAccessResponse && typeName is Strings.Types.SkillResponse or Strings.Types.FullSkillResponse)
+        {
+
+        }
+
+        reportDiagnostic(Diagnostic.Create(Rules.InvalidParameterRule, syntax.GetLocation(), syntax.TypeName(), methodName));
+        return null;
+    }
+
+    private static ArgumentDetail? ToHandlerArgumentDetail(this ParameterSyntax syntax, string methodName, HandlerMarkerInfo info, bool singleParam,
         Action<Diagnostic> reportDiagnostic)
     {
         var typeName = syntax.TypeName();
@@ -109,7 +152,7 @@ internal static class ArgumentFactory
 
         if (typeName == info.RequestType.Identifier.Text)
         {
-            return new ArgumentDetail(singleParam ? TypedRequest(info) : SF.IdentifierName(Strings.Names.TypedRequestObject)){RequiresRequest = !singleParam};
+            return new ArgumentDetail(singleParam ? TypedRequest(info.RequestType) : SF.IdentifierName(Strings.Names.TypedRequestObject)){RequiresRequest = !singleParam};
         }
 
         if (typeName == Strings.Types.AlexaRequestInformation)
@@ -126,7 +169,6 @@ internal static class ArgumentFactory
         }
 
         reportDiagnostic(Diagnostic.Create(Rules.InvalidParameterRule,syntax.GetLocation(),syntax.TypeName(),methodName));
-        //TODO: Add Analyzer warning - unable to map type for method.
         return null;
     }
 }

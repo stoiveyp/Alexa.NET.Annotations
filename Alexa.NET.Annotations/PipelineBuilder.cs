@@ -9,47 +9,45 @@ namespace Alexa.NET.Annotations
     {
         public static CompilationUnitSyntax BuildPipelineClasses(ClassDeclarationSyntax cls, Action<Diagnostic> reportDiagnostic)
         {
-            var usings = SF.List(new[]
-            {
-                SF.UsingDirective(Strings.Usings.System()),
-                SF.UsingDirective(Strings.Usings.AlexaNetRequest()),
-                SF.UsingDirective(Strings.Usings.AlexaNetResponse()),
-                SF.UsingDirective(Strings.Usings.AlexaNetResponseType()),
-                SF.UsingDirective(Strings.Usings.RequestHandlers()),
-                SF.UsingDirective(Strings.Usings.RequestHandlerTypes()),
-                SF.UsingDirective(Strings.Usings.Tasks()),
-            }.Distinct());
-
-            var initialSetup = SF.CompilationUnit().WithUsings(usings);
-
-            var nsName = NamespaceHelper.Find(cls);
-
             var skillClass = SF.ClassDeclaration(cls.Identifier.Text)
                 .WithModifiers(SF.TokenList(
                     SF.Token(SyntaxKind.PublicKeyword),
                     SF.Token(SyntaxKind.PartialKeyword)));
 
 
-            var skill = skillClass.BuildSkill(cls, reportDiagnostic);
+            var skillInfo = skillClass.BuildSkill(cls, reportDiagnostic);
+
+            var usings = SF.List(new[]
+            {
+                Strings.Usings.System(),
+                Strings.Usings.AlexaNetRequest(),
+                Strings.Usings.AlexaNetResponse(),
+                Strings.Usings.AlexaNetResponseType(),
+                Strings.Usings.RequestHandlers(),
+                Strings.Usings.RequestHandlerTypes(),
+                Strings.Usings.Tasks(),
+                skillInfo.HasInterceptors ? Strings.Usings.Interceptors() : null
+            }.Where(u => u != null).Select(SF.UsingDirective!));
+
+            var nsName = NamespaceHelper.Find(cls);
+            var initialSetup = SF.CompilationUnit().WithUsings(usings);
 
             if (nsName != null)
             {
-                return initialSetup.AddMembers(SF.NamespaceDeclaration(nsName).AddMembers(skill));
+                return initialSetup.AddMembers(SF.NamespaceDeclaration(nsName).AddMembers(skillInfo.SkillClass!));
             }
 
-            return initialSetup.AddMembers(skill);
+            return initialSetup.AddMembers(skillInfo.SkillClass!);
         }
 
-        public static ClassDeclarationSyntax BuildSkill(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax cls, Action<Diagnostic> reportDiagnostic)
+        public static SkillInformation BuildSkill(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax cls, Action<Diagnostic> reportDiagnostic)
         {
-            var handlers = cls.Members.OfType<MethodDeclarationSyntax>()
-                .Where(MarkerHelper.HasMarkerAttribute).Select(m => m.ToPipelineHandler(m.MarkerAttribute()!, cls, reportDiagnostic))
-                .Where(c => c != null);
-
-            return skillClass
+            var info = SkillInformation.GenerateFrom(cls, reportDiagnostic);
+            info.SetBuiltSkill(skillClass
                 .AddPipelineField()
                 .AddExecuteMethod()
-                .AddInitialization(handlers!);
+                .AddInitialization(info));
+            return info;
 
         }
 
@@ -61,29 +59,59 @@ namespace Alexa.NET.Annotations
             return skillClass.AddMembers(field);
         }
 
-        public static ClassDeclarationSyntax AddInitialization(this ClassDeclarationSyntax skillClass,
-            IEnumerable<ClassDeclarationSyntax> handlers)
+        public static ClassDeclarationSyntax AddInitialization(this ClassDeclarationSyntax skillClass, SkillInformation information)
         {
-            var arrayType = SF.ArrayType(SF.GenericName(
-                    SF.Identifier(Strings.Types.RequestHandlerInterface))
-                .WithTypeArgumentList(SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillRequest)))))
-                .WithRankSpecifiers(SF.SingletonList<ArrayRankSpecifierSyntax>(SF.ArrayRankSpecifier(SF.SingletonSeparatedList<ExpressionSyntax>(SF.OmittedArraySizeExpression()))));
+            var argumentList = new List<ArgumentSyntax> { information.HandlerArray() };
+
+            if (information.HasInterceptors)
+            {
+                //Error Handlers - not yet supported
+                argumentList.Add(SF.Argument(SF.LiteralExpression(SyntaxKind.NullLiteralExpression)));
+                argumentList.Add(information.InterceptorArray());
+                argumentList.Add(SF.Argument(SF.LiteralExpression(SyntaxKind.NullLiteralExpression)));
+            }
 
             var newPipeline = SF.ObjectCreationExpression(SF.IdentifierName(Strings.Types.PipelineClass))
-                .WithArgumentList(SF.ArgumentList(SF.SeparatedList(new[]{SF.Argument(
-                SF.ArrayCreationExpression(arrayType,
-                    SF.InitializerExpression(SyntaxKind.ArrayInitializerExpression,
-                        SF.SeparatedList<ExpressionSyntax>(
-                        handlers.Select(h =>
-                            SF.ObjectCreationExpression(SF.IdentifierName(h.Identifier.Text)).WithArgumentList(
-                                SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.ThisExpression())))))))))})));
+                .WithArgumentList(SF.ArgumentList(SF.SeparatedList(argumentList)));
 
             var initializeMethod =
                 SF.MethodDeclaration(SF.PredefinedType(SF.Token(SyntaxKind.VoidKeyword)), Strings.Names.InitializeMethod)
                     .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword)))
                     .AddBodyStatements(
                         SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, SF.IdentifierName(Strings.Names.PipelineField), newPipeline)));
-            return skillClass.AddMembers(initializeMethod).AddMembers(handlers.ToArray());
+            return skillClass.AddMembers(initializeMethod).AddMembers(information.Handlers);
+        }
+
+        private static ArgumentSyntax HandlerArray(this SkillInformation information)
+        {
+            var arrayType = SF.ArrayType(SF.GenericName(
+                        SF.Identifier(Strings.Types.RequestHandlerInterface))
+                    .WithTypeArgumentList(SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(information.SkillRequestType)))))
+                .WithRankSpecifiers(SF.SingletonList(SF.ArrayRankSpecifier(SF.SingletonSeparatedList<ExpressionSyntax>(SF.OmittedArraySizeExpression()))));
+
+            return SF.Argument(
+                SF.ArrayCreationExpression(arrayType,
+                    SF.InitializerExpression(SyntaxKind.ArrayInitializerExpression,
+                        SF.SeparatedList<ExpressionSyntax>(
+                            information.Handlers.Select(h =>
+                                SF.ObjectCreationExpression(SF.IdentifierName(h.Identifier.Text)).WithArgumentList(
+                                    SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.ThisExpression())))))))));
+        }
+
+        private static ArgumentSyntax InterceptorArray(this SkillInformation information)
+        {
+            var arrayType = SF.ArrayType(SF.GenericName(
+                        SF.Identifier(Strings.Types.RequestInterceptorInterface))
+                    .WithTypeArgumentList(SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(information.SkillRequestType)))))
+                .WithRankSpecifiers(SF.SingletonList(SF.ArrayRankSpecifier(SF.SingletonSeparatedList<ExpressionSyntax>(SF.OmittedArraySizeExpression()))));
+
+            return SF.Argument(
+                SF.ArrayCreationExpression(arrayType,
+                    SF.InitializerExpression(SyntaxKind.ArrayInitializerExpression,
+                        SF.SeparatedList<ExpressionSyntax>(
+                            information.Interceptors.Select(h =>
+                                SF.ObjectCreationExpression(SF.IdentifierName(h.Identifier.Text)).WithArgumentList(
+                                    SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.ThisExpression())))))))));
         }
 
         public static ClassDeclarationSyntax AddExecuteMethod(this ClassDeclarationSyntax skillClass)
