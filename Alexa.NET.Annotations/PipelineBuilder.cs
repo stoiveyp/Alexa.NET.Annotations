@@ -43,6 +43,7 @@ namespace Alexa.NET.Annotations
         public static SkillInformation BuildSkill(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax cls, Action<Diagnostic> reportDiagnostic)
         {
             var info = SkillInformation.GenerateFrom(cls, reportDiagnostic);
+
             info.SetBuiltSkill(skillClass
                 .AddPipelineField()
                 .AddExecuteMethod()
@@ -79,7 +80,7 @@ namespace Alexa.NET.Annotations
                     .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword)))
                     .AddBodyStatements(
                         SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, SF.IdentifierName(Strings.Names.PipelineField), newPipeline)));
-            return skillClass.AddMembers(initializeMethod).AddMembers(information.Handlers);
+            return skillClass.AddMembers(initializeMethod).AddMembers(information.Handlers).AddMembers(information.Interceptors);
         }
 
         private static ArgumentSyntax HandlerArray(this SkillInformation information)

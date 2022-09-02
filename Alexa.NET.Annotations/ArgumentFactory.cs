@@ -46,9 +46,6 @@ internal static class ArgumentFactory
         return parameterPrep;
     }
 
-    internal static bool HasNextParameter(this MethodDeclarationSyntax method) => method.ParameterList.Parameters.Any(p => p.TypeName() == Strings.Types.NextDelegate);
-    
-
     private static CastExpressionSyntax TypedRequest(IdentifierNameSyntax requestType) => SF.CastExpression(requestType,
         SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
             SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
@@ -137,7 +134,7 @@ internal static class ArgumentFactory
 
         if (info.CanAccessResponse && typeName is Strings.Types.SkillResponse or Strings.Types.FullSkillResponse)
         {
-
+            return new ArgumentDetail(SF.IdentifierName(Strings.Names.Response));
         }
 
         reportDiagnostic(Diagnostic.Create(Rules.InvalidParameterRule, syntax.GetLocation(), syntax.TypeName(), methodName));

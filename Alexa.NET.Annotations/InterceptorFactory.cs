@@ -18,7 +18,7 @@ internal static class InterceptorFactory
 
         var returnsVoid = method.ReturnsVoid();
 
-        if (method.ReturnsVoid() || method.IsTask())
+        if (returnsVoid || method.IsTask())
         {
             return ReturnClass(containerClass, method, info, reportDiagnostic);
         }
@@ -45,7 +45,7 @@ internal static class InterceptorFactory
         var returnType = InnerClassHelper.SkillResponseTask();
 
         var newMethod = SF.MethodDeclaration(returnType, Strings.HandlerMethodName)
-            .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.OverrideKeyword)))
+            .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.OverrideKeyword), SF.Token(SyntaxKind.AsyncKeyword)))
             .WithParameterList(SF.ParameterList(SF.SeparatedList(
                 new []{
                     SF.Parameter(SF.Identifier(Strings.Names.HandlerInformationProperty)).WithType(InnerClassHelper.TypedSkillInformation()),
@@ -55,20 +55,36 @@ internal static class InterceptorFactory
 
         var argumentMapping = method.FromInterceptorParameters(info, reportDiagnostic);
 
-        var wrapperExpression = InnerClassHelper.RunWrapper(method, argumentMapping).WrapIfNotAsync(method);
+        var statements = argumentMapping.CommonStatements
+            .Concat(argumentMapping.Arguments.SelectMany(a => a.ArgumentSetup)).ToList();
 
-        if (argumentMapping.InlineOnly)
+        var nextExpression = SF.InvocationExpression(SF.IdentifierName(Strings.Names.NextCallProperty))
+            .WithArgumentList(SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.IdentifierName(Strings.Names.HandlerInformationProperty)))));
+
+        //Await IF handler returns Task
+        var wrapperExpression = SF.AwaitExpression(InnerClassHelper.RunWrapper(method, argumentMapping));
+
+        if (info.CanAccessResponse)
         {
-            newMethod = newMethod.WithExpressionBody(SF.ArrowExpressionClause(wrapperExpression.WrapIfNotAsync(method))).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
+            var initialResponse = SF.VariableDeclaration(SF.IdentifierName(Strings.Types.Var))
+                .WithVariables(SF.SingletonSeparatedList(
+                    SF.VariableDeclarator(SF.Identifier(Strings.Names.Response))
+                        .WithInitializer(SF.EqualsValueClause(SF.AwaitExpression(nextExpression)))
+                    ));
+            statements.Add(SF.LocalDeclarationStatement(initialResponse));
+            statements.Add(SF.ExpressionStatement(wrapperExpression));
+            //IF handler returns SkillResponse - return interceptor, otherwise return response
+            statements.Add(SF.ReturnStatement(SF.IdentifierName(Strings.Names.Response)));
         }
         else
         {
-            newMethod = newMethod.WithBody(SF.Block(
-                argumentMapping.CommonStatements
-                    .Concat(argumentMapping.Arguments.SelectMany(a => a.ArgumentSetup)
-                        .Concat(new[] { SF.ReturnStatement(wrapperExpression) }))));
+            statements.Add(SF.ExpressionStatement(wrapperExpression));
+            statements.Add(SF.ReturnStatement(nextExpression));
         }
 
-        return skillClass.AddMembers(newMethod);
+
+            newMethod = newMethod.WithBody(SF.Block(statements));
+
+            return skillClass.AddMembers(newMethod);
     }
 }
