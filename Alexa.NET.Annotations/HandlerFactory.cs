@@ -22,14 +22,7 @@ namespace Alexa.NET.Annotations
 
         internal static bool AssertReturnType(MethodDeclarationSyntax method, Action<Diagnostic>? reportDiagnostic = null)
         {
-            var returnType = method.ReturnType;
-
-            if (returnType is GenericNameSyntax { Identifier.Text: Strings.Types.Task } gen)
-            {
-                returnType = gen.TypeArgumentList.Arguments.First();
-            }
-
-            if (returnType is IdentifierNameSyntax { Identifier.Text: Strings.Types.SkillResponse or Strings.Types.FullSkillResponse })
+            if(method.ReturnsSkillResponse())
             {
                 return true;
             }

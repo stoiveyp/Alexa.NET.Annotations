@@ -28,7 +28,12 @@ public partial class Example
 
         public override async Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information, RequestInterceptorCall<SkillRequest> next)
         {
-            await Wrapper.Before1();
+            var interceptorResponse = await Wrapper.Before1(information);
+            if (interceptorResponse != null)
+            {
+                return interceptorResponse;
+            }
+
             return next(information);
         }
     }
@@ -45,7 +50,13 @@ public partial class Example
         public override async Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information, RequestInterceptorCall<SkillRequest> next)
         {
             var response = await next(information);
-            await Wrapper.After1();
+            var interceptorResponse = await Wrapper.After1();
+            if (interceptorResponse != null)
+            {
+                return interceptorResponse;
+            }
+
+            return response;
         }
     }
 
@@ -58,9 +69,11 @@ public partial class Example
             Wrapper = wrapper;
         }
 
-        public override async Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information, RequestInterceptorCall<SkillRequest> next){
+        public override async Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information, RequestInterceptorCall<SkillRequest> next)
+        {
             var response = await next(information);
-            return Wrapper.After2(response);
+            Wrapper.After2(information, response);
+            return response;
         }
     }
 
@@ -76,7 +89,7 @@ public partial class Example
         public override async Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information, RequestInterceptorCall<SkillRequest> next)
         {
             await Wrapper.Before2();
-            return next(information);
+            return await next(information);
         }
     }
 }

@@ -36,6 +36,7 @@ namespace Alexa.NET.Annotations
             public const string SlotsProperty = "Slots";
             public const string NextCallProperty = "next";
             public const string Response = "response";
+            public const string InterceptorResponse = "interceptorResponse";
         }
 
         public static class Types

@@ -8,21 +8,19 @@ using Alexa.NET.Response;
 public partial class Example
 {
     [BeforeExecution]
-    public Task<SkillResponse> Before1()
+    public Task<SkillResponse> Before1(AlexaRequestInformation information)
     {
-        //INVALID - before execute method can't have a skill response return type
         return Task.FromResult(SkillResponse.Empty());
     }
 
     [AfterExecution]
     public Task<SkillResponse> After1()
     {
-        //INVALID - after execute signature returning skill response must have a SkillResponse parameter
         return Task.FromResult(SkillResponse.Empty());
     }
 
     [AfterExecution]
-    public void After2(SkillResponse response)
+    public void After2(AlexaRequestInformation information, SkillResponse response)
     {
 
     }

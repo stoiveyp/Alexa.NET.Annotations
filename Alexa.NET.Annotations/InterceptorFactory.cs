@@ -47,7 +47,7 @@ internal static class InterceptorFactory
         var newMethod = SF.MethodDeclaration(returnType, Strings.HandlerMethodName)
             .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.OverrideKeyword), SF.Token(SyntaxKind.AsyncKeyword)))
             .WithParameterList(SF.ParameterList(SF.SeparatedList(
-                new []{
+                new[]{
                     SF.Parameter(SF.Identifier(Strings.Names.HandlerInformationProperty)).WithType(InnerClassHelper.TypedSkillInformation()),
                     SF.Parameter(SF.Identifier(Strings.Names.NextCallProperty)).WithType(InnerClassHelper.NextCall())
                     }
@@ -61,8 +61,33 @@ internal static class InterceptorFactory
         var nextExpression = SF.InvocationExpression(SF.IdentifierName(Strings.Names.NextCallProperty))
             .WithArgumentList(SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.IdentifierName(Strings.Names.HandlerInformationProperty)))));
 
-        //Await IF handler returns Task
-        var wrapperExpression = SF.AwaitExpression(InnerClassHelper.RunWrapper(method, argumentMapping));
+        ExpressionSyntax wrapperExpression = InnerClassHelper.RunWrapper(method, argumentMapping);
+
+        if (method.ReturnsTask())
+        {
+            wrapperExpression = SF.AwaitExpression(wrapperExpression);
+        }
+
+
+        StatementSyntax? ifStatement = null;
+        StatementSyntax? finalWrapper = null;
+        if (method.ReturnsSkillResponse())
+        {
+            var interceptorVar = SF.VariableDeclaration(SF.IdentifierName(Strings.Types.Var))
+                .WithVariables(SF.SingletonSeparatedList(SF.VariableDeclarator(SF.Identifier(Strings.Names.InterceptorResponse)).WithInitializer(SF.EqualsValueClause(wrapperExpression))));
+            finalWrapper = SF.LocalDeclarationStatement(interceptorVar);
+            var condition = SF.BinaryExpression(SyntaxKind.NotEqualsExpression,
+                SF.IdentifierName(Strings.Names.InterceptorResponse),
+                SF.LiteralExpression(SyntaxKind.NullLiteralExpression));
+            ifStatement = SF.IfStatement(condition,
+                SF.Block(SF.ReturnStatement(SF.IdentifierName(Strings.Names.InterceptorResponse))));
+        }
+        else
+        {
+            finalWrapper = SF.ExpressionStatement(wrapperExpression);
+        }
+
+
 
         if (info.CanAccessResponse)
         {
@@ -72,19 +97,26 @@ internal static class InterceptorFactory
                         .WithInitializer(SF.EqualsValueClause(SF.AwaitExpression(nextExpression)))
                     ));
             statements.Add(SF.LocalDeclarationStatement(initialResponse));
-            statements.Add(SF.ExpressionStatement(wrapperExpression));
+            statements.Add(finalWrapper);
+            if (ifStatement != null)
+            {
+                statements.Add(ifStatement);
+            }
             //IF handler returns SkillResponse - return interceptor, otherwise return response
             statements.Add(SF.ReturnStatement(SF.IdentifierName(Strings.Names.Response)));
         }
         else
         {
-            statements.Add(SF.ExpressionStatement(wrapperExpression));
+            statements.Add(finalWrapper);
+            if (ifStatement != null)
+            {
+                statements.Add(ifStatement);
+            }
             statements.Add(SF.ReturnStatement(nextExpression));
         }
 
+        newMethod = newMethod.WithBody(SF.Block(statements));
 
-            newMethod = newMethod.WithBody(SF.Block(statements));
-
-            return skillClass.AddMembers(newMethod);
+        return skillClass.AddMembers(newMethod);
     }
 }

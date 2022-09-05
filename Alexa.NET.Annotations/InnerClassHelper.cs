@@ -69,6 +69,21 @@ namespace Alexa.NET.Annotations
 
         internal static bool ReturnsVoid(this MethodDeclarationSyntax method) => method.ReturnType is PredefinedTypeSyntax pre && pre.Keyword.IsKind(SyntaxKind.VoidKeyword);
 
+        public static bool ReturnsSkillResponse(this MethodDeclarationSyntax method)
+        {
+            var returnType = method.ReturnType;
+
+            if (returnType is GenericNameSyntax { Identifier.Text: Strings.Types.Task } gen)
+            {
+                returnType = gen.TypeArgumentList.Arguments.First();
+            }
+
+            return (returnType is IdentifierNameSyntax
+            {
+                Identifier.Text: Strings.Types.SkillResponse or Strings.Types.FullSkillResponse
+            });
+        }
+
         public static TypeSyntax SkillResponseTask() => SF.GenericName(Strings.Types.Task).WithTypeArgumentList(
             SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillResponse))));
 
