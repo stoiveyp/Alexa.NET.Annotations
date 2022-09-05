@@ -28,10 +28,20 @@ namespace Alexa.NET.Annotations
                 SF.ArgumentList(arguments));
         }
 
-        internal static ClassDeclarationSyntax GenerateWrapperClass(this MethodDeclarationSyntax method,
+        internal static ClassDeclarationSyntax GenerateHandlerClass(this MethodDeclarationSyntax method,
             ClassDeclarationSyntax containerClass, BaseTypeSyntax baseType,
             ConstructorInitializerSyntax? constructorInitializer) => SF
-            .ClassDeclaration(method.Identifier.Text + Strings.HandlerSuffix)
+            .ClassDeclaration(method.Identifier.Text + Strings.Names.HandlerSuffix)
+            .WithBaseList(SF.BaseList(SF.SingletonSeparatedList(baseType)))
+            .WithModifiers(SF.TokenList(
+                SF.Token(SyntaxKind.PrivateKeyword)))
+            .AddWrapperField(containerClass)
+            .AddWrapperConstructor(containerClass, constructorInitializer);
+
+        internal static ClassDeclarationSyntax GenerateInterceptorClass(this MethodDeclarationSyntax method,
+            ClassDeclarationSyntax containerClass, BaseTypeSyntax baseType,
+            ConstructorInitializerSyntax? constructorInitializer) => SF
+            .ClassDeclaration(method.Identifier.Text + Strings.Names.InterceptorSuffix)
             .WithBaseList(SF.BaseList(SF.SingletonSeparatedList(baseType)))
             .WithModifiers(SF.TokenList(
                 SF.Token(SyntaxKind.PrivateKeyword)))

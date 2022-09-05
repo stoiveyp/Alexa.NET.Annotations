@@ -30,4 +30,13 @@ public partial class Example
     {
         return Task.CompletedTask;
     }
+
+    [BeforeExecution]
+    public Task Before3(SkillResponse response)
+    {
+        return Task.CompletedTask;
+    }
+
+    [BeforeExecution]
+    public void Before4() { }
 }

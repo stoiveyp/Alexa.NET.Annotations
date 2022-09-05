@@ -38,7 +38,7 @@ namespace Alexa.NET.Annotations
                     Console.WriteLine(ex);
                 }
 
-                if (cls.ContainsAttributeNamed(nameof(AlexaLambdaAttribute).NameOnly()))
+                if (cls!.ContainsAttributeNamed(nameof(AlexaLambdaAttribute).NameOnly()))
                 {
                     AddHelper();
                     context.AddSource($"{cls.Identifier.Text}.lambda.g.cs",

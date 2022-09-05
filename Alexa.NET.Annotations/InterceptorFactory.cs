@@ -35,7 +35,7 @@ internal static class InterceptorFactory
     private static ClassDeclarationSyntax ReturnClass(ClassDeclarationSyntax containerClass, MethodDeclarationSyntax method,
         InterceptorMarkerInfo info, System.Action<Diagnostic> reportDiagnostic)
     {
-        return method.GenerateWrapperClass(containerClass, RequestInterceptorBaseType, null)
+        return method.GenerateHandlerClass(containerClass, RequestInterceptorBaseType, null)
             .AddExecuteMethod(method, info, reportDiagnostic);
     }
 
@@ -112,7 +112,7 @@ internal static class InterceptorFactory
             {
                 statements.Add(ifStatement);
             }
-            statements.Add(SF.ReturnStatement(nextExpression));
+            statements.Add(SF.ReturnStatement(SF.AwaitExpression(nextExpression)));
         }
 
         newMethod = newMethod.WithBody(SF.Block(statements));

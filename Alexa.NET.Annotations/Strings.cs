@@ -17,8 +17,6 @@ namespace Alexa.NET.Annotations
         public const string ProgramClassName = "Program";
         public const string RunLambdaMethodName = "RunLambda";
 
-        public const string HandlerSuffix = "Handler";
-
         public const string RequestProperty = "Request";
 
         public static class Names
@@ -37,6 +35,8 @@ namespace Alexa.NET.Annotations
             public const string NextCallProperty = "next";
             public const string Response = "response";
             public const string InterceptorResponse = "interceptorResponse";
+            public const string InterceptorSuffix = "Interceptor";
+            public const string HandlerSuffix = "Handler";
         }
 
         public static class Types
