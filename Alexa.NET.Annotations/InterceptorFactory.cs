@@ -35,7 +35,7 @@ internal static class InterceptorFactory
     private static ClassDeclarationSyntax ReturnClass(ClassDeclarationSyntax containerClass, MethodDeclarationSyntax method,
         InterceptorMarkerInfo info, System.Action<Diagnostic> reportDiagnostic)
     {
-        return method.GenerateHandlerClass(containerClass, RequestInterceptorBaseType, null)
+        return method.GenerateInterceptorClass(containerClass, RequestInterceptorBaseType, null)
             .AddExecuteMethod(method, info, reportDiagnostic);
     }
 
@@ -44,8 +44,14 @@ internal static class InterceptorFactory
     {
         var returnType = InnerClassHelper.SkillResponseTask();
 
+        var tokens = SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.OverrideKeyword));
+        if (method.ReturnsTask() || info.CanAccessResponse)
+        {
+            tokens = tokens.Add(SF.Token(SyntaxKind.AsyncKeyword));
+        }
+
         var newMethod = SF.MethodDeclaration(returnType, Strings.HandlerMethodName)
-            .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.OverrideKeyword), SF.Token(SyntaxKind.AsyncKeyword)))
+            .WithModifiers(tokens)
             .WithParameterList(SF.ParameterList(SF.SeparatedList(
                 new[]{
                     SF.Parameter(SF.Identifier(Strings.Names.HandlerInformationProperty)).WithType(InnerClassHelper.TypedSkillInformation()),
@@ -58,7 +64,7 @@ internal static class InterceptorFactory
         var statements = argumentMapping.CommonStatements
             .Concat(argumentMapping.Arguments.SelectMany(a => a.ArgumentSetup)).ToList();
 
-        var nextExpression = SF.InvocationExpression(SF.IdentifierName(Strings.Names.NextCallProperty))
+        ExpressionSyntax nextExpression = SF.InvocationExpression(SF.IdentifierName(Strings.Names.NextCallProperty))
             .WithArgumentList(SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.IdentifierName(Strings.Names.HandlerInformationProperty)))));
 
         ExpressionSyntax wrapperExpression = InnerClassHelper.RunWrapper(method, argumentMapping);
@@ -68,6 +74,10 @@ internal static class InterceptorFactory
             wrapperExpression = SF.AwaitExpression(wrapperExpression);
         }
 
+        if (method.ReturnsTask() || info.CanAccessResponse)
+        {
+            nextExpression = SF.AwaitExpression(nextExpression);
+        }
 
         StatementSyntax? ifStatement = null;
         StatementSyntax? finalWrapper = null;
@@ -94,7 +104,7 @@ internal static class InterceptorFactory
             var initialResponse = SF.VariableDeclaration(SF.IdentifierName(Strings.Types.Var))
                 .WithVariables(SF.SingletonSeparatedList(
                     SF.VariableDeclarator(SF.Identifier(Strings.Names.Response))
-                        .WithInitializer(SF.EqualsValueClause(SF.AwaitExpression(nextExpression)))
+                        .WithInitializer(SF.EqualsValueClause(nextExpression))
                     ));
             statements.Add(SF.LocalDeclarationStatement(initialResponse));
             statements.Add(finalWrapper);
@@ -112,7 +122,7 @@ internal static class InterceptorFactory
             {
                 statements.Add(ifStatement);
             }
-            statements.Add(SF.ReturnStatement(SF.AwaitExpression(nextExpression)));
+            statements.Add(SF.ReturnStatement(nextExpression));
         }
 
         newMethod = newMethod.WithBody(SF.Block(statements));

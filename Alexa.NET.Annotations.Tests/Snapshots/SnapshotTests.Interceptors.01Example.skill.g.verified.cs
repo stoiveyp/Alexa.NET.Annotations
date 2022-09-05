@@ -14,14 +14,14 @@ public partial class Example
     public virtual Task<SkillResponse> Execute(SkillRequest skillRequest) => _pipeline.Process(skillRequest);
     public void Initialize()
     {
-        _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{}, null, new IAlexaRequestInterceptor<SkillRequest>[]{new Before1Handler(this), new After1Handler(this), new After2Handler(this), new Before2Handler(this), new Before3Handler(this), new Before4Handler(this)}, null);
+        _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{}, null, new IAlexaRequestInterceptor<SkillRequest>[]{new Before1Interceptor(this), new After1Interceptor(this), new After2Interceptor(this), new Before2Interceptor(this), new Before3Interceptor(this), new Before4Interceptor(this)}, null);
     }
 
-    private class Before1Handler : IAlexaRequestInterceptor
+    private class Before1Interceptor : IAlexaRequestInterceptor
     {
         private Example Wrapper { get; }
 
-        internal Before1Handler(Example wrapper)
+        internal Before1Interceptor(Example wrapper)
         {
             Wrapper = wrapper;
         }
@@ -38,11 +38,11 @@ public partial class Example
         }
     }
 
-    private class After1Handler : IAlexaRequestInterceptor
+    private class After1Interceptor : IAlexaRequestInterceptor
     {
         private Example Wrapper { get; }
 
-        internal After1Handler(Example wrapper)
+        internal After1Interceptor(Example wrapper)
         {
             Wrapper = wrapper;
         }
@@ -60,11 +60,11 @@ public partial class Example
         }
     }
 
-    private class After2Handler : IAlexaRequestInterceptor
+    private class After2Interceptor : IAlexaRequestInterceptor
     {
         private Example Wrapper { get; }
 
-        internal After2Handler(Example wrapper)
+        internal After2Interceptor(Example wrapper)
         {
             Wrapper = wrapper;
         }
@@ -77,11 +77,11 @@ public partial class Example
         }
     }
 
-    private class Before2Handler : IAlexaRequestInterceptor
+    private class Before2Interceptor : IAlexaRequestInterceptor
     {
         private Example Wrapper { get; }
 
-        internal Before2Handler(Example wrapper)
+        internal Before2Interceptor(Example wrapper)
         {
             Wrapper = wrapper;
         }
@@ -93,11 +93,11 @@ public partial class Example
         }
     }
 
-    private class Before3Handler : IAlexaRequestInterceptor
+    private class Before3Interceptor : IAlexaRequestInterceptor
     {
         private Example Wrapper { get; }
 
-        internal Before3Handler(Example wrapper)
+        internal Before3Interceptor(Example wrapper)
         {
             Wrapper = wrapper;
         }
@@ -109,19 +109,19 @@ public partial class Example
         }
     }
 
-    private class Before4Handler : IAlexaRequestInterceptor
+    private class Before4Interceptor : IAlexaRequestInterceptor
     {
         private Example Wrapper { get; }
 
-        internal Before4Handler(Example wrapper)
+        internal Before4Interceptor(Example wrapper)
         {
             Wrapper = wrapper;
         }
 
-        public override async Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information, RequestInterceptorCall<SkillRequest> next)
+        public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information, RequestInterceptorCall<SkillRequest> next)
         {
             Wrapper.Before4();
-            return await next(information);
+            return next(information);
         }
     }
 }
