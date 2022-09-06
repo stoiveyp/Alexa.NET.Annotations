@@ -28,10 +28,17 @@ namespace Alexa.NET.Annotations
 
             foreach (var cls in args.Where(a => a != null))
             {
-                context.AddSource($"{cls!.Identifier.Text}.skill.g.cs",
-                    PipelineBuilder.BuildPipelineClasses(cls, context.ReportDiagnostic).ToCodeString());
+                try
+                {
+                    context.AddSource($"{cls!.Identifier.Text}.skill.g.cs",
+                        PipelineBuilder.BuildPipelineClasses(cls, context.ReportDiagnostic).ToCodeString());
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
 
-                if (cls.ContainsAttributeNamed(nameof(AlexaLambdaAttribute).NameOnly()))
+                if (cls!.ContainsAttributeNamed(nameof(AlexaLambdaAttribute).NameOnly()))
                 {
                     AddHelper();
                     context.AddSource($"{cls.Identifier.Text}.lambda.g.cs",

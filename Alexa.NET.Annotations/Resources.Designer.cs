@@ -61,6 +61,60 @@ namespace Alexa.NET.Annotations {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Skill methods must have a return type of either SkillResponse or Task&lt;SkillResponse&gt;..
+        /// </summary>
+        internal static string InvalidHandlerReturnTypeDescription {
+            get {
+                return ResourceManager.GetString("InvalidHandlerReturnTypeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method {0} is not returning a SkillResponse object.
+        /// </summary>
+        internal static string InvalidHandlerReturnTypeMessageFormat {
+            get {
+                return ResourceManager.GetString("InvalidHandlerReturnTypeMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid return type.
+        /// </summary>
+        internal static string InvalidHandlerReturnTypeTitle {
+            get {
+                return ResourceManager.GetString("InvalidHandlerReturnTypeTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Skill methods using BeforeRequest or BeforeResponse must have a return type of either void, Task, SkillResponse or Task&lt;SkillResponse&gt;..
+        /// </summary>
+        internal static string InvalidInterceptorReturnTypeDescription {
+            get {
+                return ResourceManager.GetString("InvalidInterceptorReturnTypeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method {0} does not have a void, Task or SkillResponse return type.
+        /// </summary>
+        internal static string InvalidInterceptorReturnTypeMessageFormat {
+            get {
+                return ResourceManager.GetString("InvalidInterceptorReturnTypeMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid return type.
+        /// </summary>
+        internal static string InvalidInterceptorReturnTypeTitle {
+            get {
+                return ResourceManager.GetString("InvalidInterceptorReturnTypeTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Skill methods can only use supported types as parameters..
         /// </summary>
         internal static string InvalidParameterDescription {
@@ -84,33 +138,6 @@ namespace Alexa.NET.Annotations {
         internal static string InvalidParameterTitle {
             get {
                 return ResourceManager.GetString("InvalidParameterTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Skill methods must have a return type of either SkillResponse or Task&lt;SkillResponse&gt;..
-        /// </summary>
-        internal static string InvalidReturnTypeDescription {
-            get {
-                return ResourceManager.GetString("InvalidReturnTypeDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Method {0} is not returning a SkillResponse object.
-        /// </summary>
-        internal static string InvalidReturnTypeMessageFormat {
-            get {
-                return ResourceManager.GetString("InvalidReturnTypeMessageFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid return type.
-        /// </summary>
-        internal static string InvalidReturnTypeTitle {
-            get {
-                return ResourceManager.GetString("InvalidReturnTypeTitle", resourceCulture);
             }
         }
     }

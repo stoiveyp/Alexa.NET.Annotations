@@ -7,7 +7,12 @@ namespace Alexa.NET.Annotations
     internal static class TaskHelper
     {
         public static bool ReturnsTask(this MethodDeclarationSyntax method) =>
-            method.ReturnType is GenericNameSyntax { Identifier.Text: "Task" };
+            method.IsTask() || method.ReturnType is GenericNameSyntax { Identifier.Text: "Task" };
+
+        public static bool IsTask(this MethodDeclarationSyntax method) => method.ReturnType is IdentifierNameSyntax
+        {
+            Identifier.Text: "Task"
+        };
 
         public static InvocationExpressionSyntax WrapIfNotAsync(this InvocationExpressionSyntax expression, MethodDeclarationSyntax method)
         {

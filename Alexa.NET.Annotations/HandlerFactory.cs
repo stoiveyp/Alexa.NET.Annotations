@@ -7,7 +7,7 @@ namespace Alexa.NET.Annotations
 {
     internal static class HandlerFactory
     {
-        public static ClassDeclarationSyntax? ToPipelineHandler(this MethodDeclarationSyntax method, AttributeSyntax marker, ClassDeclarationSyntax containerClass, Action<Diagnostic> reportDiagnostic)
+        public static ClassDeclarationSyntax? ToHandler(this MethodDeclarationSyntax method, AttributeSyntax marker, ClassDeclarationSyntax containerClass, Action<Diagnostic> reportDiagnostic)
         {
             if (!AssertReturnType(method, reportDiagnostic))
             {
@@ -15,86 +15,43 @@ namespace Alexa.NET.Annotations
             }
 
             if (marker == null) throw new ArgumentNullException(nameof(marker));
-            var info = MarkerInfo.MarkerTypeInfo[marker.MarkerName()!];
-            return SF.ClassDeclaration(method.Identifier.Text + Strings.HandlerSuffix)
-                .WithBaseList(SF.BaseList(SF.SingletonSeparatedList(info.BaseType(marker))))
-                .WithModifiers(SF.TokenList(
-                    SF.Token(SyntaxKind.PrivateKeyword)))
-                .AddWrapperField(containerClass)
-                .AddWrapperConstructor(containerClass, info.Constructor?.Invoke(marker))
+            var info = HandlerMarkerInfo.Info[marker.MarkerName()!];
+            return method.GenerateHandlerClass(containerClass, info.BaseType, info.Constructor?.Invoke(marker))
                 .AddExecuteMethod(method, info, reportDiagnostic);
         }
 
-        private static bool AssertReturnType(MethodDeclarationSyntax method, Action<Diagnostic> reportDiagnostic)
+        internal static bool AssertReturnType(MethodDeclarationSyntax method, Action<Diagnostic>? reportDiagnostic = null)
         {
-            var returnType = method.ReturnType;
-
-            if (returnType is GenericNameSyntax { Identifier.Text: Strings.Types.Task } gen)
-            {
-                returnType = gen.TypeArgumentList.Arguments.First();
-            }
-
-            if (returnType is IdentifierNameSyntax { Identifier.Text: Strings.Types.SkillResponse or Strings.Types.FullSkillResponse })
+            if(method.ReturnsSkillResponse())
             {
                 return true;
             }
 
-            reportDiagnostic(Diagnostic.Create(Rules.InvalidReturnTypeRule,method.GetLocation(),method.Identifier.Text));
+            reportDiagnostic?.Invoke(Diagnostic.Create(Rules.InvalidHandlerReturnTypeRule, method.GetLocation(),
+                method.Identifier.Text));
+
             return false;
         }
 
-        public static ClassDeclarationSyntax AddWrapperConstructor(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax wrapperClass, ConstructorInitializerSyntax? initializer)
+        private static ClassDeclarationSyntax AddExecuteMethod(this ClassDeclarationSyntax skillClass,
+            MethodDeclarationSyntax method, HandlerMarkerInfo info, Action<Diagnostic> reportDiagnostic)
         {
-            var handlerParameter = SF.Parameter(SF.Identifier(Strings.WrapperVarName))
-                .WithType(SF.IdentifierName(wrapperClass.Identifier.Text));
-
-            var constructor = SF.ConstructorDeclaration(skillClass.Identifier.Text)
-                .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.InternalKeyword)))
-                .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(handlerParameter)))
-                .WithBody(SF.Block(SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
-                    SF.IdentifierName(Strings.WrapperPropertyName), SF.IdentifierName(Strings.WrapperVarName)))));
-
-            if (initializer != null)
-            {
-                constructor = constructor.WithInitializer(initializer);
-            }
-
-            return skillClass.AddMembers(constructor);
-        }
-
-        public static ClassDeclarationSyntax AddWrapperField(this ClassDeclarationSyntax skillClass,
-            ClassDeclarationSyntax wrapperClass)
-        {
-            var handlerField = SF
-                .PropertyDeclaration(SF.IdentifierName(wrapperClass.Identifier.Text), Strings.WrapperPropertyName)
-                .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PrivateKeyword)))
-                .WithAccessorList(SF.AccessorList(SF.SingletonList(SF.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken)))));
-            return skillClass.AddMembers(handlerField);
-        }
-
-        public static ClassDeclarationSyntax AddExecuteMethod(this ClassDeclarationSyntax skillClass,
-            MethodDeclarationSyntax method, MarkerInfo info, Action<Diagnostic> reportDiagnostic)
-        {
-            var returnType = method.ReturnsTask()
-                ? method.ReturnType
-                : SF.GenericName(Strings.Types.Task).WithTypeArgumentList(
-                    SF.TypeArgumentList(SF.SingletonSeparatedList(method.ReturnType)));
+            var returnType = SF.GenericName(Strings.Types.Task).WithTypeArgumentList(
+                    SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillResponse))));
 
             var newMethod = SF.MethodDeclaration(returnType, Strings.HandlerMethodName)
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.OverrideKeyword)))
                 .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(
-                    SF.Parameter(SF.Identifier(Strings.Names.HandlerInformationProperty)).WithType(
-                        SF.GenericName(SF.Identifier(Strings.Types.HandlerInformation),
-                            SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillRequest)))))
+                    SF.Parameter(SF.Identifier(Strings.Names.HandlerInformationProperty)).WithType(InnerClassHelper.TypedSkillInformation())
                 )));
 
-            var argumentMapping = method.FromParameters(info, reportDiagnostic);
+            var argumentMapping = method.FromHandlerParameters(info, reportDiagnostic);
 
-            var wrapperExpression = RunWrapper(method, argumentMapping);
+            var wrapperExpression = InnerClassHelper.RunWrapper(method, argumentMapping).WrapIfNotAsync(method);
 
             if (argumentMapping.InlineOnly)
             {
-                newMethod = newMethod.WithExpressionBody(SF.ArrowExpressionClause(wrapperExpression.WrapIfNotAsync(method))).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
+                newMethod = newMethod.WithExpressionBody(SF.ArrowExpressionClause(wrapperExpression)).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
             }
             else
             {
@@ -105,27 +62,6 @@ namespace Alexa.NET.Annotations
             }
 
             return skillClass.AddMembers(newMethod);
-        }
-
-        private static InvocationExpressionSyntax RunWrapper(MethodDeclarationSyntax method, ParameterPrep prep)
-        {
-            SeparatedSyntaxList<ArgumentSyntax> arguments = SF.SeparatedList<ArgumentSyntax>();
-
-            if (prep.Arguments.Count == 1)
-            {
-                arguments = SF.SingletonSeparatedList(SF.Argument(prep.Arguments[0].Expression));
-            }
-            else
-            {
-                arguments = SF.SeparatedList(prep.Arguments.Select(a => SF.Argument(a.Expression)));
-            }
-
-            return SF.InvocationExpression(
-                SF.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SF.IdentifierName(Strings.WrapperPropertyName),
-                    SF.IdentifierName(method.Identifier.Text)),
-                SF.ArgumentList(arguments));
         }
     }
 }

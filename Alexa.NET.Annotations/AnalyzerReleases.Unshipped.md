@@ -5,5 +5,8 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+AlexaSkillInterceptorNextParameterMissing | AlexaSkill | Error | Rules
+AlexaSkillInvalidHandlerReturnType | AlexaSkill | Error | Rules
+AlexaSkillInvalidInterceptorReturnType | AlexaSkill | Error | Rules
 AlexaSkillInvalidParameter | AlexaSkill | Error | Rules
 AlexaSkillInvalidReturnType | AlexaSkill | Error | Rules

@@ -28,7 +28,7 @@ public partial class Example
         public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information)
         {
             var request = (LaunchRequest)information.SkillRequest.Request;
-            return Wrapper.Launch(request);
+            return Task.FromResult(Wrapper.Launch(request));
         }
     }
 

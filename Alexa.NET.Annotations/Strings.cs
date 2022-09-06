@@ -17,8 +17,6 @@ namespace Alexa.NET.Annotations
         public const string ProgramClassName = "Program";
         public const string RunLambdaMethodName = "RunLambda";
 
-        public const string HandlerSuffix = "Handler";
-
         public const string RequestProperty = "Request";
 
         public static class Names
@@ -34,6 +32,11 @@ namespace Alexa.NET.Annotations
             public const string SlotValueProperty = "SlotValue";
             public const string SlotValueValueProperty = "Value";
             public const string SlotsProperty = "Slots";
+            public const string NextCallProperty = "next";
+            public const string Response = "response";
+            public const string InterceptorResponse = "interceptorResponse";
+            public const string InterceptorSuffix = "Interceptor";
+            public const string HandlerSuffix = "Handler";
         }
 
         public static class Types
@@ -54,6 +57,8 @@ namespace Alexa.NET.Annotations
             public const string String = "string";
             public const string Slot = "Slot";
             public const string FullSlot = "Alexa.NET.Request.Slot";
+            public const string NextDelegate = "RequestInterceptorCall";
+            public const string RequestInterceptorInterface = nameof(IAlexaRequestInterceptor);
         }
 
         public static class Usings
@@ -65,6 +70,7 @@ namespace Alexa.NET.Annotations
             public static NameSyntax AlexaNetResponseType() => NamespaceHelper.Build("Alexa", "NET", "Request", "Type")!;
             public static NameSyntax RequestHandlers() => NamespaceHelper.Build("Alexa", "NET", "RequestHandlers")!;
             public static NameSyntax RequestHandlerTypes() => NamespaceHelper.Build("Alexa", "NET", "RequestHandlers", "Handlers")!;
+            public static NameSyntax Interceptors() => NamespaceHelper.Build("Alexa", "NET", "RequestHandlers", "Interceptors")!;
             public static NameSyntax Tasks() => NamespaceHelper.Build("System", "Threading", "Tasks")!;
         }
     }

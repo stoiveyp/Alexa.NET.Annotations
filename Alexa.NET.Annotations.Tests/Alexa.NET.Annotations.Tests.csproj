@@ -13,12 +13,16 @@
     <Compile Remove="Examples\EmptyLaunch.cs" />
     <Compile Remove="Examples\IntentExample.cs" />
     <Compile Remove="Examples\IntentSlots.cs" />
+    <Compile Remove="Examples\Interceptors.cs" />
     <Compile Remove="Examples\InvalidReturnType.cs" />
     <Compile Remove="Examples\LaunchExample.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="Examples\Combined.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\Interceptors.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Examples\IntentSlots.cs">

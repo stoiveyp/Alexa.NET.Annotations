@@ -46,4 +46,11 @@ public class SnapshotTests
         var sampleCode = System.IO.File.ReadAllText("Examples/InvalidReturnType.cs");
         return Utility.Verify(sampleCode);
     }
+
+    [Fact]
+    public Task Interceptors()
+    {
+        var sampleCode = System.IO.File.ReadAllText("Examples/Interceptors.cs");
+        return Utility.Verify(sampleCode);
+    }
 }
