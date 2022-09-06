@@ -40,28 +40,60 @@ public virtual Task<SkillResponse> Execute(SkillRequest skillRequest);
 
 ## Attributes
 
-There are currently two attributes supported. The method name you attach these two doesn't matter and can be called anything, they're just exampes
+There are several attributes available right now. The method name you attach these two doesn't matter and can be called anything, they're just examples.
 
-*Launch*
+### Launch
 
-The launch attribute is for when your skill starts, and requires a method with one of these signatures
+The launch attribute is for when your skill starts.
+
+Return Type must be either `SkillResponse` or `Task<SkillResponse>`
 
 ```csharp
-public SkillResponse MethodName(LaunchRequest intent);
+public SkillResponse Launch();
 public Task<SkillResponse> Launch(LaunchRequest intent);
 ```
 
-*Intent(IntentName)*
+### Intent(IntentName)
 
 The intent attribute wires up to a specific intent, named in the attribute argument.
 If the signature contains string or Slot parameters, they are mapped to intent slots.
 
+Return Type must be either `SkillResponse` or `Task<SkillResponse>`
+
 Example signatures
 ```csharp
+[Intent("Test")]
 public async Task<SkillResponse> Intent(IntentRequest intentRequest);
+
+[Intent("Test2")]
 public SkillResponse Intent(IntentRequest intentRequest);
+
+[Intent("Test3")]
 public SkillResponse Intent(string slotOne, Slot slotTwo);
 ```
+
+### BeforeResponse/AfterResponse
+
+These two attributes are used to run common functionality you want to run before or after the handlers are run to generate the response.
+
+Their return type can be either `void`, `SkillResponse' or 'Task<SkillResponse>`
+
+AfterResponse also has access to the SkillResponse that is going to be returned as an optional argument
+
+Examples
+```csharp
+
+[BeforeResponse]
+public void LogBefore() {
+    Logger.Information("running before the response is generated")
+}
+
+[AfterResponse]
+public SkillResponse LogAfter(SkillResponse response) {
+    return response;
+}
+```
+
 
 ## Wiring up an AWS Lambda
 
