@@ -34,6 +34,13 @@ public class SnapshotTests
     }
 
     [Fact]
+    public Task APLSkillRequest()
+    {
+        var sampleCode = System.IO.File.ReadAllText("Examples/APLSkillRequest.cs");
+        return Utility.Verify(sampleCode);
+    }
+
+    [Fact]
     public void AlexaLambdaAddsHelper()
     {
         var sampleCode = System.IO.File.ReadAllText("Examples/Combined.cs");

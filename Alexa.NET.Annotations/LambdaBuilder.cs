@@ -1,5 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -9,10 +8,12 @@ namespace Alexa.NET.Annotations
     {
         public static CompilationUnitSyntax BuildLambdaClass(ClassDeclarationSyntax cls)
         {
+            var requestType = cls.RequestType();
             var usings = SF.List(new[]
             {
                 Strings.Usings.System(),
-                Strings.Usings.StaticCode()
+                Strings.Usings.StaticCode(),
+                Strings.Usings.AlexaNetRequest()
             }.Select(SF.UsingDirective));
 
             var namespaceName = NamespaceHelper.Find(cls);
@@ -23,11 +24,11 @@ namespace Alexa.NET.Annotations
 
             var initialSetup = SF.CompilationUnit().WithUsings(usings);
 
-            var skillClass = MakeSkillISkillLambda(cls);
+            var skillClass = MakeSkillISkillLambda(cls, requestType);
 
             initialSetup = namespaceName != null ? initialSetup.AddMembers(SF.NamespaceDeclaration(namespaceName).AddMembers(skillClass)) : initialSetup.AddMembers(skillClass);
 
-            var pipelineInvocation = PipelineInvocation(cls);
+            var pipelineInvocation = PipelineInvocation(cls, requestType);
 
             var main = MainTask(pipelineInvocation);
 
@@ -44,24 +45,29 @@ namespace Alexa.NET.Annotations
                 .WithExpressionBody(SF.ArrowExpressionClause(pipelineInvocation)).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
         }
 
-        private static InvocationExpressionSyntax PipelineInvocation(ClassDeclarationSyntax cls)
+        private static InvocationExpressionSyntax PipelineInvocation(ClassDeclarationSyntax cls, TypeSyntax requestType)
         {
             return SF.InvocationExpression(
                     SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
                         SF.IdentifierName(Strings.Types.LambdaHelper),
                         SF.GenericName(SF.Identifier(Strings.RunLambdaMethodName),
                             SF.TypeArgumentList(
-                                SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(cls.Identifier.Text))))))
+                                SF.SeparatedList(new []{requestType,SF.IdentifierName(cls.Identifier.Text)})))))
                 .WithArgumentList(SF.ArgumentList());
         }
 
-        private static ClassDeclarationSyntax MakeSkillISkillLambda(ClassDeclarationSyntax cls)
+        private static ClassDeclarationSyntax MakeSkillISkillLambda(ClassDeclarationSyntax cls, TypeSyntax requestType)
         {
             return SF.ClassDeclaration(cls.Identifier.Text)
                 .WithModifiers(SF.TokenList(
                     SF.Token(SyntaxKind.PublicKeyword),
                     SF.Token(SyntaxKind.PartialKeyword)))
-                .WithBaseList(SF.BaseList(SF.SingletonSeparatedList<BaseTypeSyntax>(SF.SimpleBaseType(SF.IdentifierName(Strings.Types.SkillLambdaInterface)))));
+                .WithBaseList(SF.BaseList(
+                    SF.SingletonSeparatedList<BaseTypeSyntax>(
+                        SF.SimpleBaseType(
+                            SF.GenericName(Strings.Types.SkillLambdaInterface)
+                                .WithTypeArgumentList(SF.TypeArgumentList(
+                                    SF.SingletonSeparatedList(requestType)))))));
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Alexa.NET.Annotations.Markers;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -7,6 +8,18 @@ namespace Alexa.NET.Annotations
 {
     internal static class InnerClassHelper
     {
+        internal static TypeSyntax RequestType(this ClassDeclarationSyntax cls)
+        {
+            var attrib = cls.GetAttributeNamed(nameof(AlexaSkillAttribute).NameOnly())!;
+            if (!(attrib.ArgumentList?.Arguments.Any() ?? false))
+            {
+                return SF.IdentifierName(Strings.Types.SkillRequest);
+            }
+
+            var typeofSyntax = (TypeOfExpressionSyntax)attrib.ArgumentList.Arguments.First().Expression;
+            return typeofSyntax.Type;
+        }
+
         internal static InvocationExpressionSyntax RunWrapper(MethodDeclarationSyntax method, ParameterPrep prep)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments = SF.SeparatedList<ArgumentSyntax>();

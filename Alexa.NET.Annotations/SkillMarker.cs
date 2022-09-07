@@ -27,11 +27,13 @@ namespace Alexa.NET.Annotations
             return cls.ContainsAttributeNamed(nameof(AlexaSkillAttribute).NameOnly()) ? cls : null;
         }
 
-        public static bool ContainsAttributeNamed(this ClassDeclarationSyntax cls, string markerName)
-        {
-            return cls.AttributeLists
+        public static bool ContainsAttributeNamed(this ClassDeclarationSyntax cls, string markerName) =>
+            cls.GetAttributeNamed(markerName) != null;
+
+        public static AttributeSyntax? GetAttributeNamed(this ClassDeclarationSyntax cls, string markerName)
+        => cls.AttributeLists
                 .SelectMany(al => al.Attributes)
-                .Any(n => n.MarkerName() == markerName);
-        }
+                .FirstOrDefault(n => n.MarkerName() == markerName);
+        
     }
 }
