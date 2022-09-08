@@ -20,14 +20,14 @@ internal class SkillInformation
     public bool HasInterceptors => Interceptors.Any();
 
 
-    public static SkillInformation GenerateFrom(ClassDeclarationSyntax cls, Action<Diagnostic> reportDiagnostic)
+    public static SkillInformation GenerateFrom(ClassDeclarationSyntax cls, string requestType, Action<Diagnostic> reportDiagnostic)
     {
         var handlers = cls.Members.OfType<MethodDeclarationSyntax>()
-            .Where(MarkerHelper.HasHandlerAttribute).Select(m => m.ToHandler(m.HandlerAttribute()!, cls, reportDiagnostic))
+            .Where(MarkerHelper.HasHandlerAttribute).Select(m => m.ToHandler(requestType, m.HandlerAttribute()!, cls, reportDiagnostic))
             .Where(c => c != null).ToArray();
 
         var interceptors = cls.Members.OfType<MethodDeclarationSyntax>()
-            .Where(MarkerHelper.HasInterceptorAttribute).Select(m => m.ToInterceptor(m.InterceptorAttribute()!, cls, reportDiagnostic))
+            .Where(MarkerHelper.HasInterceptorAttribute).Select(m => m.ToInterceptor(requestType, m.InterceptorAttribute()!, cls, reportDiagnostic))
             .Where(c => c != null).ToArray();
 
         return new(handlers!, interceptors!);

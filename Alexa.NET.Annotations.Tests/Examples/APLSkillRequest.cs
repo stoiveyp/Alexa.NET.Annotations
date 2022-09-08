@@ -9,19 +9,19 @@ using System.Threading.Tasks;
 public partial class Example
 {
     [Launch]
-    public SkillResponse Launch(LaunchRequest<APLSkillRequest> intent, ILambdaContext _)
+    public SkillResponse Launch(LaunchRequest intent, ILambdaContext _)
     {
         return ResponseBuilder.Ask("What's your move? Rock, Paper or scissors?", new("What's your move?"));
     }
 
     [Intent(BuiltInIntent.Fallback)]
-    public async Task<SkillResponse> Fallback(IntentRequest<APLSkillRequest> intent)
+    public async Task<SkillResponse> Fallback(APLSkillRequest skillRequest, IntentRequest intent)
     {
         return ResponseBuilder.Tell("you win");
     }
 
     [Intent("PlayAGame")]
-    public async Task<SkillResponse> PlayAGame(IntentRequest<APLSkillRequest> intent)
+    public async Task<SkillResponse> PlayAGame(IntentRequest intent)
     {
         return ResponseBuilder.Tell("you win");
     }

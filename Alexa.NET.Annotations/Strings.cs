@@ -59,6 +59,7 @@ namespace Alexa.NET.Annotations
             public const string FullSlot = "Alexa.NET.Request.Slot";
             public const string NextDelegate = "RequestInterceptorCall";
             public const string RequestInterceptorInterface = nameof(IAlexaRequestInterceptor);
+            public const string FullSkillRequest = "Alexa.NET.Request.SkillRequest";
         }
 
         public static class Usings

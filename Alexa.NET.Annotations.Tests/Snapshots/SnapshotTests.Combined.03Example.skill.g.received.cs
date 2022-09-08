@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 public partial class Example
 {
-    private AlexaRequestPipeline _pipeline;
+    private AlexaRequestPipeline<SkillRequest> _pipeline;
     public virtual Task<SkillResponse> Execute(SkillRequest skillRequest) => _pipeline.Process(skillRequest);
     public void Initialize()
     {
-        _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{new LaunchHandler(this), new FallbackHandler(this), new PlayAGameHandler(this)});
+        _pipeline = new AlexaRequestPipeline<SkillRequest>(new IAlexaRequestHandler<SkillRequest>[]{new LaunchHandler(this), new FallbackHandler(this), new PlayAGameHandler(this)});
     }
 
     private class LaunchHandler : LaunchRequestHandler

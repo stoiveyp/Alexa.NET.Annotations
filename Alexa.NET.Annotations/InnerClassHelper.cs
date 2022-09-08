@@ -110,12 +110,12 @@ namespace Alexa.NET.Annotations
         public static TypeSyntax SkillResponseTask() => SF.GenericName(Strings.Types.Task).WithTypeArgumentList(
             SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillResponse))));
 
-        public static TypeSyntax TypedSkillInformation() => SF.GenericName(
+        public static TypeSyntax TypedSkillInformation(string skillRequest) => SF.GenericName(
             SF.Identifier(Strings.Types.HandlerInformation),
-            SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillRequest))));
+            SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(skillRequest))));
 
-        public static TypeSyntax NextCall() => SF.GenericName(
+        public static TypeSyntax NextCall(string skillRequest) => SF.GenericName(
             SF.Identifier(Strings.Types.NextDelegate),
-            SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillRequest))));
+            SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(skillRequest))));
     }
 }

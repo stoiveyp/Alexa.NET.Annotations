@@ -11,7 +11,7 @@ internal static class InterceptorFactory
     private static readonly BaseTypeSyntax RequestInterceptorBaseType = SyntaxFactory.SimpleBaseType(SyntaxFactory.IdentifierName(nameof(IAlexaRequestInterceptor)));
 
     public static ClassDeclarationSyntax? ToInterceptor(this MethodDeclarationSyntax method,
-        AttributeSyntax marker, ClassDeclarationSyntax containerClass, Action<Diagnostic> reportDiagnostic)
+        string requestType, AttributeSyntax marker, ClassDeclarationSyntax containerClass, Action<Diagnostic> reportDiagnostic)
     {
         if (marker == null) throw new ArgumentNullException(nameof(marker));
         var info = InterceptorMarkerInfo.Info[marker.MarkerName()!];
@@ -20,12 +20,12 @@ internal static class InterceptorFactory
 
         if (returnsVoid || method.IsTask())
         {
-            return ReturnClass(containerClass, method, info, reportDiagnostic);
+            return ReturnClass(containerClass, method, requestType, info, reportDiagnostic);
         }
 
         if (HandlerFactory.AssertReturnType(method))
         {
-            return ReturnClass(containerClass, method, info, reportDiagnostic);
+            return ReturnClass(containerClass, method, requestType, info, reportDiagnostic);
         }
 
         reportDiagnostic(Diagnostic.Create(Rules.InvalidInterceptorReturnTypeRule, method.GetLocation(), method.Identifier.Text));
@@ -33,14 +33,14 @@ internal static class InterceptorFactory
     }
 
     private static ClassDeclarationSyntax ReturnClass(ClassDeclarationSyntax containerClass, MethodDeclarationSyntax method,
-        InterceptorMarkerInfo info, System.Action<Diagnostic> reportDiagnostic)
+        string requestType, InterceptorMarkerInfo info, System.Action<Diagnostic> reportDiagnostic)
     {
         return method.GenerateInterceptorClass(containerClass, RequestInterceptorBaseType, null)
-            .AddExecuteMethod(method, info, reportDiagnostic);
+            .AddExecuteMethod(method, requestType, info, reportDiagnostic);
     }
 
     private static ClassDeclarationSyntax AddExecuteMethod(this ClassDeclarationSyntax skillClass,
-        MethodDeclarationSyntax method, InterceptorMarkerInfo info, Action<Diagnostic> reportDiagnostic)
+        MethodDeclarationSyntax method, string requestType, InterceptorMarkerInfo info, Action<Diagnostic> reportDiagnostic)
     {
         var returnType = InnerClassHelper.SkillResponseTask();
 
@@ -54,8 +54,8 @@ internal static class InterceptorFactory
             .WithModifiers(tokens)
             .WithParameterList(SF.ParameterList(SF.SeparatedList(
                 new[]{
-                    SF.Parameter(SF.Identifier(Strings.Names.HandlerInformationProperty)).WithType(InnerClassHelper.TypedSkillInformation()),
-                    SF.Parameter(SF.Identifier(Strings.Names.NextCallProperty)).WithType(InnerClassHelper.NextCall())
+                    SF.Parameter(SF.Identifier(Strings.Names.HandlerInformationProperty)).WithType(InnerClassHelper.TypedSkillInformation(requestType)),
+                    SF.Parameter(SF.Identifier(Strings.Names.NextCallProperty)).WithType(InnerClassHelper.NextCall(requestType))
                     }
             )));
 

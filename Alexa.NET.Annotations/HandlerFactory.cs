@@ -7,7 +7,7 @@ namespace Alexa.NET.Annotations
 {
     internal static class HandlerFactory
     {
-        public static ClassDeclarationSyntax? ToHandler(this MethodDeclarationSyntax method, AttributeSyntax marker, ClassDeclarationSyntax containerClass, Action<Diagnostic> reportDiagnostic)
+        public static ClassDeclarationSyntax? ToHandler(this MethodDeclarationSyntax method, string requestType, AttributeSyntax marker, ClassDeclarationSyntax containerClass, Action<Diagnostic> reportDiagnostic)
         {
             if (!AssertReturnType(method, reportDiagnostic))
             {
@@ -17,7 +17,7 @@ namespace Alexa.NET.Annotations
             if (marker == null) throw new ArgumentNullException(nameof(marker));
             var info = HandlerMarkerInfo.Info[marker.MarkerName()!];
             return method.GenerateHandlerClass(containerClass, info.BaseType, info.Constructor?.Invoke(marker))
-                .AddExecuteMethod(method, info, reportDiagnostic);
+                .AddExecuteMethod(requestType, method, info, reportDiagnostic);
         }
 
         internal static bool AssertReturnType(MethodDeclarationSyntax method, Action<Diagnostic>? reportDiagnostic = null)
@@ -34,7 +34,7 @@ namespace Alexa.NET.Annotations
         }
 
         private static ClassDeclarationSyntax AddExecuteMethod(this ClassDeclarationSyntax skillClass,
-            MethodDeclarationSyntax method, HandlerMarkerInfo info, Action<Diagnostic> reportDiagnostic)
+            string requestType,MethodDeclarationSyntax method, HandlerMarkerInfo info, Action<Diagnostic> reportDiagnostic)
         {
             var returnType = SF.GenericName(Strings.Types.Task).WithTypeArgumentList(
                     SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillResponse))));
@@ -42,10 +42,10 @@ namespace Alexa.NET.Annotations
             var newMethod = SF.MethodDeclaration(returnType, Strings.HandlerMethodName)
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.OverrideKeyword)))
                 .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(
-                    SF.Parameter(SF.Identifier(Strings.Names.HandlerInformationProperty)).WithType(InnerClassHelper.TypedSkillInformation())
+                    SF.Parameter(SF.Identifier(Strings.Names.HandlerInformationProperty)).WithType(InnerClassHelper.TypedSkillInformation(requestType))
                 )));
 
-            var argumentMapping = method.FromHandlerParameters(info, reportDiagnostic);
+            var argumentMapping = method.FromHandlerParameters(requestType,info, reportDiagnostic);
 
             var wrapperExpression = InnerClassHelper.RunWrapper(method, argumentMapping).WrapIfNotAsync(method);
 

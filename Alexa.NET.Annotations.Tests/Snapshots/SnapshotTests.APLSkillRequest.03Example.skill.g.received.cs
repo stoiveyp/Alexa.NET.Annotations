@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 public partial class Example
 {
-    private AlexaRequestPipeline _pipeline;
-    public virtual Task<SkillResponse> Execute(SkillRequest skillRequest) => _pipeline.Process(skillRequest);
+    private AlexaRequestPipeline<APLSkillRequest> _pipeline;
+    public virtual Task<SkillResponse> Execute(APLSkillRequest skillRequest) => _pipeline.Process(skillRequest);
     public void Initialize()
     {
-        _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{new LaunchHandler(this), new FallbackHandler(this), new PlayAGameHandler(this)});
+        _pipeline = new AlexaRequestPipeline<APLSkillRequest>(new IAlexaRequestHandler<SkillRequest>[]{new LaunchHandler(this), new FallbackHandler(this), new PlayAGameHandler(this)});
     }
 
     private class LaunchHandler : LaunchRequestHandler
@@ -25,7 +25,7 @@ public partial class Example
             Wrapper = wrapper;
         }
 
-        public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information)
+        public override Task<SkillResponse> Handle(AlexaRequestInformation<APLSkillRequest> information)
         {
             var request = (LaunchRequest)information.SkillRequest.Request;
             return Task.FromResult(Wrapper.Launch(request));
@@ -41,7 +41,11 @@ public partial class Example
             Wrapper = wrapper;
         }
 
-        public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information) => Wrapper.Fallback((IntentRequest)information.SkillRequest.Request);
+        public override Task<SkillResponse> Handle(AlexaRequestInformation<APLSkillRequest> information)
+        {
+            var request = (IntentRequest)information.SkillRequest.Request;
+            return Wrapper.Fallback(information.SkillRequest, request);
+        }
     }
 
     private class PlayAGameHandler : IntentNameRequestHandler
@@ -53,6 +57,6 @@ public partial class Example
             Wrapper = wrapper;
         }
 
-        public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information) => Wrapper.PlayAGame((IntentRequest)information.SkillRequest.Request);
+        public override Task<SkillResponse> Handle(AlexaRequestInformation<APLSkillRequest> information) => Wrapper.PlayAGame((IntentRequest)information.SkillRequest.Request);
     }
 }

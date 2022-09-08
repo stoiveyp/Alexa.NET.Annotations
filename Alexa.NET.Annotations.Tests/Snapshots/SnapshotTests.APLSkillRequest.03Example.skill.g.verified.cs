@@ -25,7 +25,7 @@ public partial class Example
             Wrapper = wrapper;
         }
 
-        public override Task<SkillResponse> Handle(AlexaRequestInformation<APLSkillRequest< information)
+        public override Task<SkillResponse> Handle(AlexaRequestInformation<APLSkillRequest> information)
         {
             var request = (LaunchRequest)information.SkillRequest.Request;
             return Task.FromResult(Wrapper.Launch(request));
@@ -41,7 +41,7 @@ public partial class Example
             Wrapper = wrapper;
         }
 
-        public override Task<SkillResponse> Handle(AlexaRequestInformation<APLSkillRequest< information) => Wrapper.Fallback((IntentRequest)information.SkillRequest.Request);
+        public override Task<SkillResponse> Handle(AlexaRequestInformation<APLSkillRequest> information) => Wrapper.Fallback((IntentRequest)information.SkillRequest.Request);
     }
 
     private class PlayAGameHandler : IntentNameRequestHandler
@@ -53,6 +53,6 @@ public partial class Example
             Wrapper = wrapper;
         }
 
-        public override Task<SkillResponse> Handle(AlexaRequestInformation<APLSkillRequest< information) => Wrapper.PlayAGame((IntentRequest)information.SkillRequest.Request);
+        public override Task<SkillResponse> Handle(AlexaRequestInformation<APLSkillRequest> information) => Wrapper.PlayAGame((IntentRequest)information.SkillRequest.Request);
     }
 }

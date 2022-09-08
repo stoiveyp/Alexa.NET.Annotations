@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 public partial class Example
 {
-    private AlexaRequestPipeline<SkillRequest> _pipeline;
+    private AlexaRequestPipeline _pipeline;
     public virtual Task<SkillResponse> Execute(SkillRequest skillRequest) => _pipeline.Process(skillRequest);
     public void Initialize()
     {
