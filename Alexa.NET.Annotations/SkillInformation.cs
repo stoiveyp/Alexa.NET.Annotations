@@ -5,11 +5,11 @@ namespace Alexa.NET.Annotations;
 
 internal class SkillInformation
 {
-    private SkillInformation(ClassDeclarationSyntax[] handlers, ClassDeclarationSyntax[] interceptors)
+    private SkillInformation(ClassDeclarationSyntax[] handlers, ClassDeclarationSyntax[] interceptors, string requestType)
     {
         Handlers = handlers;
         Interceptors = interceptors;
-        SkillRequestType = Strings.Types.SkillRequest;
+        SkillRequestType = requestType;
     }
 
     public ClassDeclarationSyntax[] Interceptors { get; }
@@ -30,7 +30,7 @@ internal class SkillInformation
             .Where(MarkerHelper.HasInterceptorAttribute).Select(m => m.ToInterceptor(requestType, m.InterceptorAttribute()!, cls, reportDiagnostic))
             .Where(c => c != null).ToArray();
 
-        return new(handlers!, interceptors!);
+        return new(handlers!, interceptors!, requestType);
     }
 
     public void SetBuiltSkill(ClassDeclarationSyntax skillClass)

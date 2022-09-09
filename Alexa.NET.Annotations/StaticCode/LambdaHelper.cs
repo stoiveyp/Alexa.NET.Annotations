@@ -9,7 +9,7 @@ namespace Alexa.NET.Annotations.StaticCode
     {
         private static readonly JsonSerializer JsonSerializer = new();
 
-        public static Task RunLambda<TRequest,TSkill>() where TRequest : SkillRequest where TSkill : ISkillLambda<SkillRequest>, new()
+        public static Task RunLambda<TRequest,TSkill>() where TRequest : SkillRequest where TSkill : ISkillLambda<TRequest>, new()
         {
             var skillClass = new TSkill();
             skillClass.Initialize();

@@ -16,7 +16,7 @@ namespace Alexa.NET.Annotations
 
             if (marker == null) throw new ArgumentNullException(nameof(marker));
             var info = HandlerMarkerInfo.Info[marker.MarkerName()!];
-            return method.GenerateHandlerClass(containerClass, info.BaseType, info.Constructor?.Invoke(marker))
+            return method.GenerateHandlerClass(containerClass, info.GenericBase(requestType), info.Constructor?.Invoke(marker))
                 .AddExecuteMethod(requestType, method, info, reportDiagnostic);
         }
 

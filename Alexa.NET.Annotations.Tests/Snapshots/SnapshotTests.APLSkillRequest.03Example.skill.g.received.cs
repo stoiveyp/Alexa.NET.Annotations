@@ -13,10 +13,10 @@ public partial class Example
     public virtual Task<SkillResponse> Execute(APLSkillRequest skillRequest) => _pipeline.Process(skillRequest);
     public void Initialize()
     {
-        _pipeline = new AlexaRequestPipeline<APLSkillRequest>(new IAlexaRequestHandler<SkillRequest>[]{new LaunchHandler(this), new FallbackHandler(this), new PlayAGameHandler(this)});
+        _pipeline = new AlexaRequestPipeline<APLSkillRequest>(new IAlexaRequestHandler<APLSkillRequest>[]{new LaunchHandler(this), new FallbackHandler(this), new PlayAGameHandler(this)});
     }
 
-    private class LaunchHandler : LaunchRequestHandler
+    private class LaunchHandler : LaunchRequestHandler<APLSkillRequest>
     {
         private Example Wrapper { get; }
 
@@ -32,7 +32,7 @@ public partial class Example
         }
     }
 
-    private class FallbackHandler : IntentNameRequestHandler
+    private class FallbackHandler : IntentNameRequestHandler<APLSkillRequest>
     {
         private Example Wrapper { get; }
 
@@ -48,7 +48,7 @@ public partial class Example
         }
     }
 
-    private class PlayAGameHandler : IntentNameRequestHandler
+    private class PlayAGameHandler : IntentNameRequestHandler<APLSkillRequest>
     {
         private Example Wrapper { get; }
 

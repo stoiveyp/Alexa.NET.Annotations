@@ -5,7 +5,7 @@
       Title: Invalid parameter in method signature,
       Severity: Error,
       WarningLevel: 0,
-      Location: : (11,71)-(11,87),
+      Location: : (11,54)-(11,70),
       Description: Skill methods can only use supported types as parameters.,
       HelpLink: ,
       MessageFormat: Parameter type {0} in method {1} is not recognised,

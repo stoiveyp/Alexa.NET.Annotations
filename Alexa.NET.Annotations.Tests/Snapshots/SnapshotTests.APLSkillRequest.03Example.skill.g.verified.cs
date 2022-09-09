@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 public partial class Example
 {
-    private AlexaRequestPipeline _pipeline;
+    private AlexaRequestPipeline<APLSkillRequest> _pipeline;
     public virtual Task<SkillResponse> Execute(APLSkillRequest skillRequest) => _pipeline.Process(skillRequest);
     public void Initialize()
     {
-        _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<APLSkillRequest<[]{new LaunchHandler(this), new FallbackHandler(this), new PlayAGameHandler(this)});
+        _pipeline = new AlexaRequestPipeline<APLSkillRequest>(new IAlexaRequestHandler<APLSkillRequest>[]{new LaunchHandler(this), new FallbackHandler(this), new PlayAGameHandler(this)});
     }
 
-    private class LaunchHandler : LaunchRequestHandler
+    private class LaunchHandler : LaunchRequestHandler<APLSkillRequest>
     {
         private Example Wrapper { get; }
 
@@ -32,7 +32,7 @@ public partial class Example
         }
     }
 
-    private class FallbackHandler : IntentNameRequestHandler
+    private class FallbackHandler : IntentNameRequestHandler<APLSkillRequest>
     {
         private Example Wrapper { get; }
 
@@ -41,10 +41,14 @@ public partial class Example
             Wrapper = wrapper;
         }
 
-        public override Task<SkillResponse> Handle(AlexaRequestInformation<APLSkillRequest> information) => Wrapper.Fallback((IntentRequest)information.SkillRequest.Request);
+        public override Task<SkillResponse> Handle(AlexaRequestInformation<APLSkillRequest> information)
+        {
+            var request = (IntentRequest)information.SkillRequest.Request;
+            return Wrapper.Fallback(information.SkillRequest, request);
+        }
     }
 
-    private class PlayAGameHandler : IntentNameRequestHandler
+    private class PlayAGameHandler : IntentNameRequestHandler<APLSkillRequest>
     {
         private Example Wrapper { get; }
 
