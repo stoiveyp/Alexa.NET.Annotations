@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Alexa.NET.Annotations.Markers;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -7,6 +8,18 @@ namespace Alexa.NET.Annotations
 {
     internal static class InnerClassHelper
     {
+        internal static TypeSyntax RequestType(this ClassDeclarationSyntax cls)
+        {
+            var attrib = cls.GetAttributeNamed(nameof(AlexaSkillAttribute).NameOnly())!;
+            if (!(attrib.ArgumentList?.Arguments.Any() ?? false))
+            {
+                return SF.IdentifierName(Strings.Types.SkillRequest);
+            }
+
+            var typeofSyntax = (TypeOfExpressionSyntax)attrib.ArgumentList.Arguments.First().Expression;
+            return typeofSyntax.Type;
+        }
+
         internal static InvocationExpressionSyntax RunWrapper(MethodDeclarationSyntax method, ParameterPrep prep)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments = SF.SeparatedList<ArgumentSyntax>();
@@ -97,12 +110,12 @@ namespace Alexa.NET.Annotations
         public static TypeSyntax SkillResponseTask() => SF.GenericName(Strings.Types.Task).WithTypeArgumentList(
             SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillResponse))));
 
-        public static TypeSyntax TypedSkillInformation() => SF.GenericName(
+        public static TypeSyntax TypedSkillInformation(string skillRequest) => SF.GenericName(
             SF.Identifier(Strings.Types.HandlerInformation),
-            SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillRequest))));
+            SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(skillRequest))));
 
-        public static TypeSyntax NextCall() => SF.GenericName(
+        public static TypeSyntax NextCall(string skillRequest) => SF.GenericName(
             SF.Identifier(Strings.Types.NextDelegate),
-            SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillRequest))));
+            SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(skillRequest))));
     }
 }

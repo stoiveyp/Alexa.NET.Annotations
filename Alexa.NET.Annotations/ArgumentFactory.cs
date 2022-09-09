@@ -7,7 +7,7 @@ namespace Alexa.NET.Annotations;
 
 internal static class ArgumentFactory
 {
-    public static ParameterPrep FromHandlerParameters(this MethodDeclarationSyntax method, HandlerMarkerInfo info,
+    public static ParameterPrep FromHandlerParameters(this MethodDeclarationSyntax method, string requestType, HandlerMarkerInfo info,
         Action<Diagnostic> reportDiagnostic)
     {
         var parameters = method.ParameterList.Parameters.ToArray();
@@ -18,7 +18,7 @@ internal static class ArgumentFactory
             return parameterPrep;
         }
 
-        parameterPrep.Arguments.AddRange(parameters.Select(p => p.ToHandlerArgumentDetail(method.Identifier.Text,info, parameters.Length == 1, reportDiagnostic)).Where(ad => ad != null)!);
+        parameterPrep.Arguments.AddRange(parameters.Select(p => p.ToHandlerArgumentDetail(method.Identifier.Text,requestType, info, parameters.Length == 1, reportDiagnostic)).Where(ad => ad != null)!);
 
         if (parameterPrep.RequiresRequest)
         {
@@ -141,7 +141,7 @@ internal static class ArgumentFactory
         return null;
     }
 
-    private static ArgumentDetail? ToHandlerArgumentDetail(this ParameterSyntax syntax, string methodName, HandlerMarkerInfo info, bool singleParam,
+    private static ArgumentDetail? ToHandlerArgumentDetail(this ParameterSyntax syntax, string methodName, string requestType, HandlerMarkerInfo info, bool singleParam,
         Action<Diagnostic> reportDiagnostic)
     {
         var typeName = syntax.TypeName();
@@ -155,6 +155,13 @@ internal static class ArgumentFactory
         if (typeName == Strings.Types.AlexaRequestInformation)
         {
             return new ArgumentDetail(SF.IdentifierName(Strings.Names.HandlerInformationProperty));
+        }
+
+        if (typeName is Strings.Types.SkillRequest or Strings.Types.FullSkillRequest || typeName == requestType)
+        {
+            return new ArgumentDetail(SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                SF.IdentifierName(Strings.HandlerInformationName),
+                SF.IdentifierName(Strings.Types.SkillRequest)));
         }
 
         if (info.RequestType.Identifier.Text == Strings.Types.IntentRequest)

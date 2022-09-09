@@ -8,5 +8,8 @@ namespace Alexa.NET.Annotations.Markers
 {
     public class AlexaSkillAttribute : Attribute
     {
+        public AlexaSkillAttribute(){}
+
+        public AlexaSkillAttribute(Type type){}
     }
 }

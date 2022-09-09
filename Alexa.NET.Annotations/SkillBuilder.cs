@@ -18,7 +18,7 @@ namespace Alexa.NET.Annotations
                 return;
             }
 
-            void AddHelper()
+            if(args.Any(a => a != null && a.ContainsAttributeNamed(nameof(AlexaLambdaAttribute).NameOnly())))
             {
                 var assembly = Assembly.GetExecutingAssembly();
                 var stream = assembly.GetManifestResourceStream("Alexa.NET.Annotations.StaticCode.LambdaHelper.cs");
@@ -40,8 +40,7 @@ namespace Alexa.NET.Annotations
 
                 if (cls!.ContainsAttributeNamed(nameof(AlexaLambdaAttribute).NameOnly()))
                 {
-                    AddHelper();
-                    context.AddSource($"{cls.Identifier.Text}.lambda.g.cs",
+                    context.AddSource($"{cls!.Identifier.Text}.lambda.g.cs",
                         LambdaBuilder.BuildLambdaClass(cls).ToCodeString());
                 }
             }

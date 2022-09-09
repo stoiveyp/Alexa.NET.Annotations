@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Examples\APLSkillRequest.cs" />
     <Compile Remove="Examples\Combined.cs" />
     <Compile Remove="Examples\EmptyLaunch.cs" />
     <Compile Remove="Examples\IntentExample.cs" />
@@ -19,6 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Examples\APLSkillRequest.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Examples\Combined.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

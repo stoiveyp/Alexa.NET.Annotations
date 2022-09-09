@@ -9,22 +9,22 @@ namespace Alexa.NET.Annotations.StaticCode
     {
         private static readonly JsonSerializer JsonSerializer = new();
 
-        public static Task RunLambda<T>() where T : ISkillLambda, new()
+        public static Task RunLambda<TRequest,TSkill>() where TRequest : SkillRequest where TSkill : ISkillLambda<TRequest>, new()
         {
-            var skillClass = new T();
+            var skillClass = new TSkill();
             skillClass.Initialize();
 
             //https://docs.aws.amazon.com/lambda/latest/dg/csharp-handler.html
 
             return LambdaBootstrapBuilder
-                .Create<SkillRequest, SkillResponse>(skillClass.Execute,
+                .Create<TRequest, SkillResponse>(skillClass.Execute,
                     new Amazon.Lambda.Serialization.Json.JsonSerializer()).Build().RunAsync();
         }
     }
 
-    public interface ISkillLambda
+    public interface ISkillLambda<TRequest>
     {
-        Task<SkillResponse> Execute(SkillRequest request);
+        Task<SkillResponse> Execute(TRequest request);
         void Initialize();
     }
 }

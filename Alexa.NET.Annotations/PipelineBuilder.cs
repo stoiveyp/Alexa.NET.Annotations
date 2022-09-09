@@ -42,25 +42,26 @@ namespace Alexa.NET.Annotations
 
         public static SkillInformation BuildSkill(this ClassDeclarationSyntax skillClass, ClassDeclarationSyntax cls, Action<Diagnostic> reportDiagnostic)
         {
-            var info = SkillInformation.GenerateFrom(cls, reportDiagnostic);
+            var requestType = (cls.RequestType() as IdentifierNameSyntax)?.Identifier.Text ?? Strings.Types.SkillRequest;
+            var info = SkillInformation.GenerateFrom(cls, requestType, reportDiagnostic);
 
             info.SetBuiltSkill(skillClass
-                .AddPipelineField()
-                .AddExecuteMethod()
-                .AddInitialization(info));
+                .AddPipelineField(requestType)
+                .AddExecuteMethod(requestType)
+                .AddInitialization(info, requestType));
             return info;
 
         }
 
-        public static ClassDeclarationSyntax AddPipelineField(this ClassDeclarationSyntax skillClass)
+        public static ClassDeclarationSyntax AddPipelineField(this ClassDeclarationSyntax skillClass, string requestType)
         {
-            var field = SF.FieldDeclaration(SF.VariableDeclaration(SF.IdentifierName(Strings.Types.PipelineClass)))
+            var field = SF.FieldDeclaration(SF.VariableDeclaration(PipelineType(requestType)))
                 .AddDeclarationVariables(SF.VariableDeclarator(Strings.Names.PipelineField))
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PrivateKeyword)));
             return skillClass.AddMembers(field);
         }
 
-        public static ClassDeclarationSyntax AddInitialization(this ClassDeclarationSyntax skillClass, SkillInformation information)
+        public static ClassDeclarationSyntax AddInitialization(this ClassDeclarationSyntax skillClass, SkillInformation information, string requestType)
         {
             var argumentList = new List<ArgumentSyntax> { information.HandlerArray() };
 
@@ -72,7 +73,7 @@ namespace Alexa.NET.Annotations
                 argumentList.Add(SF.Argument(SF.LiteralExpression(SyntaxKind.NullLiteralExpression)));
             }
 
-            var newPipeline = SF.ObjectCreationExpression(SF.IdentifierName(Strings.Types.PipelineClass))
+            var newPipeline = SF.ObjectCreationExpression(PipelineType(requestType))
                 .WithArgumentList(SF.ArgumentList(SF.SeparatedList(argumentList)));
 
             var initializeMethod =
@@ -81,6 +82,17 @@ namespace Alexa.NET.Annotations
                     .AddBodyStatements(
                         SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, SF.IdentifierName(Strings.Names.PipelineField), newPipeline)));
             return skillClass.AddMembers(initializeMethod).AddMembers(information.Handlers).AddMembers(information.Interceptors);
+        }
+
+        private static TypeSyntax PipelineType(string requestType)
+        {
+            if (requestType == Strings.Types.SkillRequest || requestType == Strings.Types.FullSkillRequest)
+            {
+                return SF.IdentifierName(Strings.Types.PipelineClass);
+            }
+            return SF
+                .GenericName(SF.Identifier(Strings.Types.PipelineClass)).WithTypeArgumentList(
+                    SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(requestType))));
         }
 
         private static ArgumentSyntax HandlerArray(this SkillInformation information)
@@ -115,7 +127,7 @@ namespace Alexa.NET.Annotations
                                     SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.ThisExpression())))))))));
         }
 
-        public static ClassDeclarationSyntax AddExecuteMethod(this ClassDeclarationSyntax skillClass)
+        public static ClassDeclarationSyntax AddExecuteMethod(this ClassDeclarationSyntax skillClass, string requestType)
         {
             var invokePipeline = SF.InvocationExpression(
                 SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName(Strings.Names.PipelineField), SF.IdentifierName(Strings.Names.ProcessMethod)))
@@ -125,7 +137,7 @@ namespace Alexa.NET.Annotations
                     SF.GenericName(SF.Identifier(nameof(Task)),
                         SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillResponse)))),
                     Strings.Names.ExecuteMethod)
-                .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(SF.Parameter(SF.Identifier(Strings.Names.SkillRequestParameter)).WithType(SF.IdentifierName(Strings.Types.SkillRequest)))))
+                .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(SF.Parameter(SF.Identifier(Strings.Names.SkillRequestParameter)).WithType(SF.IdentifierName(requestType)))))
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.VirtualKeyword)))
                 .WithExpressionBody(SF.ArrowExpressionClause(invokePipeline)).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
 

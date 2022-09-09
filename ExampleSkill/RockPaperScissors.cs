@@ -7,7 +7,7 @@ using Alexa.NET.Response;
 
 namespace ExampleSkill
 {
-    [AlexaSkill]
+    [AlexaSkill(typeof(APLSkillRequest))]
     [AlexaLambda]
     public partial class RockPaperScissors
     {
@@ -24,6 +24,6 @@ namespace ExampleSkill
         }
 
         [Intent(BuiltInIntent.Help)]
-        public SkillResponse Help(AlexaRequestInformation<SkillRequest> information) => ResponseBuilder.Empty();
+        public SkillResponse Help(AlexaRequestInformation<APLSkillRequest> information) => ResponseBuilder.Empty();
     }
 }

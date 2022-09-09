@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: AlexaSkillInvalidParameter,
+      Title: Invalid parameter in method signature,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (11,54)-(11,70),
+      Description: Skill methods can only use supported types as parameters.,
+      HelpLink: ,
+      MessageFormat: Parameter type {0} in method {1} is not recognised,
+      Message: Parameter type ILambdaContext in method Launch is not recognised,
+      Category: AlexaSkill,
+      CustomTags: []
+    }
+  ]
+}

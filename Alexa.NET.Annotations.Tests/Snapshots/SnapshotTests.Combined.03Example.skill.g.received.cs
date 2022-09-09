@@ -16,7 +16,7 @@ public partial class Example
         _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{new LaunchHandler(this), new FallbackHandler(this), new PlayAGameHandler(this)});
     }
 
-    private class LaunchHandler : LaunchRequestHandler
+    private class LaunchHandler : SkillRequest
     {
         private Example Wrapper { get; }
 
@@ -32,7 +32,7 @@ public partial class Example
         }
     }
 
-    private class FallbackHandler : IntentNameRequestHandler
+    private class FallbackHandler : SkillRequest
     {
         private Example Wrapper { get; }
 
@@ -44,7 +44,7 @@ public partial class Example
         public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information) => Wrapper.Fallback((IntentRequest)information.SkillRequest.Request);
     }
 
-    private class PlayAGameHandler : IntentNameRequestHandler
+    private class PlayAGameHandler : SkillRequest
     {
         private Example Wrapper { get; }
 
