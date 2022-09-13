@@ -1,8 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-
 namespace Alexa.NET.Annotations;
 
 internal static class ArgumentFactory
