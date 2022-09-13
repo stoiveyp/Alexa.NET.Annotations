@@ -7,11 +7,11 @@
 	  <LangVersion>latest</LangVersion>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <PackageLicenseFile>LICENSE</PackageLicenseFile>
-	  <PackageReleaseNotes>Support for custom SkillRequest types</PackageReleaseNotes>
+	  <PackageReleaseNotes>Support for pipeline context object</PackageReleaseNotes>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
-	  <Version>1.0.0-beta1</Version>
+	  <Version>1.0.0-beta2</Version>
 	  <Description>Library to help make writing your first Alexa skill smaller and easier</Description>
 	  <Authors>Steven Pears</Authors>
 	  <PackageProjectUrl>https://github.com/stoiveyp/Alexa.NET.Annotations</PackageProjectUrl>

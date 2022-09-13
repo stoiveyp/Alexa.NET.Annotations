@@ -37,6 +37,7 @@ namespace Alexa.NET.Annotations
             public const string InterceptorResponse = "interceptorResponse";
             public const string InterceptorSuffix = "Interceptor";
             public const string HandlerSuffix = "Handler";
+            public const string ContextParameter = "context";
         }
 
         public static class Types

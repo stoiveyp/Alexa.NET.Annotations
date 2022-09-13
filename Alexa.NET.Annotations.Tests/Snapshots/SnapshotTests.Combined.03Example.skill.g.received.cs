@@ -10,13 +10,13 @@ using System.Threading.Tasks;
 public partial class Example
 {
     private AlexaRequestPipeline _pipeline;
-    public virtual Task<SkillResponse> Execute(SkillRequest skillRequest) => _pipeline.Process(skillRequest);
+    public virtual Task<SkillResponse> Execute(SkillRequest skillRequest, object context = null) => _pipeline.Process(skillRequest, context);
     public void Initialize()
     {
         _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{new LaunchHandler(this), new FallbackHandler(this), new PlayAGameHandler(this)});
     }
 
-    private class LaunchHandler : SkillRequest
+    private class LaunchHandler : LaunchRequestHandler
     {
         private Example Wrapper { get; }
 
@@ -32,7 +32,7 @@ public partial class Example
         }
     }
 
-    private class FallbackHandler : SkillRequest
+    private class FallbackHandler : IntentNameRequestHandler
     {
         private Example Wrapper { get; }
 
@@ -44,7 +44,7 @@ public partial class Example
         public override Task<SkillResponse> Handle(AlexaRequestInformation<SkillRequest> information) => Wrapper.Fallback((IntentRequest)information.SkillRequest.Request);
     }
 
-    private class PlayAGameHandler : SkillRequest
+    private class PlayAGameHandler : IntentNameRequestHandler
     {
         private Example Wrapper { get; }
 

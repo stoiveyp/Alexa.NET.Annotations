@@ -35,7 +35,7 @@ public partial class RockPaperScissors
 These attributes add an `Execute` method to your class, which has this signature, and can be called by your code.
 
 ```csharp
-public virtual Task<SkillResponse> Execute(SkillRequest skillRequest);
+public virtual Task<SkillResponse> Execute(SkillRequest skillRequest, object context = null);
 ```
 
 ## Attributes
@@ -111,7 +111,7 @@ There are two requirements to make this work
 *  Your class must have a parameterless constructor
 *  You need to add a NuGet reference to [https://www.nuget.org/packages/Amazon.Lambda.RuntimeSupport/](https://www.nuget.org/packages/Amazon.Lambda.RuntimeSupport/)
 
-This will generate a Program class and Main method straight to your skill pipeline.
+This will generate a Program class and Main method straight to your skill pipeline. The `ILambdaContext` object passed into your lambda will automatically be wired up as the context parameter in your `Execute` method.
 
 To make this work - when you push your code to AWS Lambda, where you'd normally reference the handler in a format of `[AssemblyName]::[Type]::[Method]` you just put `[AssemblyName]]`
 

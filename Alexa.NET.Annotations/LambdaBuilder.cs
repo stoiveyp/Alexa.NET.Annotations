@@ -52,7 +52,11 @@ namespace Alexa.NET.Annotations
                         SF.IdentifierName(Strings.Types.LambdaHelper),
                         SF.GenericName(SF.Identifier(Strings.RunLambdaMethodName),
                             SF.TypeArgumentList(
-                                SF.SeparatedList(new []{requestType,SF.IdentifierName(cls.Identifier.Text)})))))
+                                SF.SeparatedList(new []
+                                {
+                                    requestType,
+                                    SF.IdentifierName(cls.Identifier.Text)
+                                })))))
                 .WithArgumentList(SF.ArgumentList());
         }
 
