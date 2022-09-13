@@ -131,13 +131,24 @@ namespace Alexa.NET.Annotations
         {
             var invokePipeline = SF.InvocationExpression(
                 SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName(Strings.Names.PipelineField), SF.IdentifierName(Strings.Names.ProcessMethod)))
-                .WithArgumentList(SF.ArgumentList(SF.SingletonSeparatedList(SF.Argument(SF.IdentifierName(Strings.Names.SkillRequestParameter)))));
+                .WithArgumentList(SF.ArgumentList(SF.SeparatedList(new []
+                {
+                    SF.Argument(SF.IdentifierName(Strings.Names.SkillRequestParameter)),
+                    SF.Argument(SF.IdentifierName(Strings.Names.ContextParameter))
+                })));
 
             var executeMethod = SF.MethodDeclaration(
                     SF.GenericName(SF.Identifier(nameof(Task)),
                         SF.TypeArgumentList(SF.SingletonSeparatedList<TypeSyntax>(SF.IdentifierName(Strings.Types.SkillResponse)))),
                     Strings.Names.ExecuteMethod)
-                .WithParameterList(SF.ParameterList(SF.SingletonSeparatedList(SF.Parameter(SF.Identifier(Strings.Names.SkillRequestParameter)).WithType(SF.IdentifierName(requestType)))))
+                .WithParameterList(
+                    SF.ParameterList(SF.SeparatedList(new []
+                    {
+                        SF.Parameter(SF.Identifier(Strings.Names.SkillRequestParameter)).WithType(SF.IdentifierName(requestType)),
+                        SF.Parameter(SF.Identifier(Strings.Names.ContextParameter))
+                            .WithType(SF.PredefinedType(SF.Token(SyntaxKind.ObjectKeyword)))
+                            .WithDefault(SF.EqualsValueClause(SF.LiteralExpression(SyntaxKind.NullLiteralExpression)))
+                    })))
                 .WithModifiers(SF.TokenList(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.VirtualKeyword)))
                 .WithExpressionBody(SF.ArrowExpressionClause(invokePipeline)).WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
 

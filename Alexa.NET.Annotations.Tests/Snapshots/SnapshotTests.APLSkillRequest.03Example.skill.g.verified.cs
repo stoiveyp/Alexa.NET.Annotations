@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 public partial class Example
 {
     private AlexaRequestPipeline<APLSkillRequest> _pipeline;
-    public virtual Task<SkillResponse> Execute(APLSkillRequest skillRequest) => _pipeline.Process(skillRequest);
+    public virtual Task<SkillResponse> Execute(APLSkillRequest skillRequest, object context = null) => _pipeline.Process(skillRequest, context);
     public void Initialize()
     {
         _pipeline = new AlexaRequestPipeline<APLSkillRequest>(new IAlexaRequestHandler<APLSkillRequest>[]{new LaunchHandler(this), new FallbackHandler(this), new PlayAGameHandler(this)});

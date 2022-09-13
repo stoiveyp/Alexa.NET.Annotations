@@ -11,7 +11,7 @@ using Alexa.NET.RequestHandlers.Interceptors;
 public partial class Example
 {
     private AlexaRequestPipeline _pipeline;
-    public virtual Task<SkillResponse> Execute(SkillRequest skillRequest) => _pipeline.Process(skillRequest);
+    public virtual Task<SkillResponse> Execute(SkillRequest skillRequest, object context = null) => _pipeline.Process(skillRequest, context);
     public void Initialize()
     {
         _pipeline = new AlexaRequestPipeline(new IAlexaRequestHandler<SkillRequest>[]{}, null, new IAlexaRequestInterceptor<SkillRequest>[]{new Before1Interceptor(this), new After1Interceptor(this), new After2Interceptor(this), new Before2Interceptor(this), new Before3Interceptor(this), new Before4Interceptor(this)}, null);
